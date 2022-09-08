@@ -1,0 +1,91 @@
+ % RUN FILE FOR OPI PROGRAMS
+%... Run title:
+run 030, synthetic topography: East-directed Gaussian at lat=45N, With M=0.25, No evap
+% Compatiable with OPI v. 3.6
+
+%... Set parallel mode versus single mode 
+% 0: single mode
+% 1: parallel mode
+0
+
+%... Enter two path names for data files, each on a separate line, 
+% to account for runs on two different computers (e.g., local computer, cluster computer).
+% Set one path name to "no" if only one path is needed.
+~/Dropbox/OPI Synthetic Cases/data
+no
+
+%... File for topographic data. The file should be placed in the directory 
+% set above for the dataPath variable.
+EastDirectedGaussianTopography_3km height_lat45N.mat
+
+%... Size of cosine window, as fraction of grid size (0=< rTukey <=1)
+% For example, rTukey = 0.25 (recommended value) will create a cosine
+% taper along each margin of the grid, with the taper width equal to 
+% rTukey/2 (0.125) times the dimension of the grid in each direction.
+% For no window, set rTukey = 0.
+% Recommended value: 0.25
+0.25
+
+%... File for water-isotope data. The file should be placed in the directory 
+% set above for the dataPath variable. Can be set to "no" for demonstration 
+% calculations, but this option only works for opiCalc and opiMaps.
+no
+
+%... File for continental-divide file, which is used in opiPlots and opiMaps.
+% The file should be placed in the directory set above for the dataPath variable.
+% Note that this file is required for the two-wind versions of the opi programs,
+% and must extend beyond the limits of the topographic grid.
+% Set to "no" if the file is not available or if a plot of the divide is not wanted.
+no
+
+%... Set limits for figures showing maps [minLon, maxLon, minLat, maxLat]
+% Use 0,0,0,0 to show full domain. 
+0, 0, 0, 0
+
+%... Set path origin, lonPath0, latPath0, which defines the origin for cross sections. 
+% Set to "map" to tell the program to set this point to the map origin.
+map
+
+%... Set search parameters used by the fminCRS function. 
+% The CRS3 search is controlled by 2 parameters.
+% mu is a factor that determines the size of the search set, where
+% mSet = ceil(mu*(nFree + 1)), with nFree as the number of free parameters. 
+% epsilon0 defines the stopping criterion, where
+% epsilon0 > stdev(f(1:mSet)) < epsilon0, with f(1:mSet) as the mSet 
+% of candidate solutions with the smallest f values, 
+% and stdev is the standard deviation function. 
+% Recommended values: mu = 10, epsilon0 = 1e-4.
+10, 1e-4
+
+%... File containing solutions for initializing or starting best-fit search
+% The file should be placed in the directory set above for the dataPath variable.
+% Set to "no" if initial solutions are not to be used. 
+no
+
+% ... Parameters 
+% U (m/s), azimuth (deg), T0 (K), M (dimensionless), kappa (m^2/s), tauC (s), ...
+% d2H0 (permil), dd2H0dLat (permil/deg lat), fP (fraction)
+% Recommended that M is limited to the range 0 to 1.2
+
+%... Parameter labels, which are used to designate axis labels for
+% in the opiPairsPlot program. Note the label must be separated by
+% the character: "|" . 
+U (m/s)|azimuth|T_0 (K)|M|\kappa (km^2/s)|\tau_c (s)|\delta^{2}_0 (‰)|d\delta^{2}_0/d\phi (‰/°)|f_P
+
+%... Exponents for "power of 10" scaling factors for each
+% parameter, which are used for the opiPairsPlot program. 
+% For example, an exponent set to 3 means that the parameter value 
+% will be multiplied by 10^-3 before plotting.
+0, 0, 0, 0, 6, 0, -3, -3, 0
+
+%... Constraints for parameter search
+% Azimuth constraints can use negative values in order to span across north 
+% (e.g., use: -30 and +30 to span the azimuth range 330 to 30 degrees).
+% Set to calculate lee-side evaporation (as shown by last two parameters)
+  0.1,   35, 265,   0,   0,    0, -15e-3, 0e-3, 1
+   25,  145, 295, 1.2, 1e6, 2500,  15e-3, 0e-3, 1
+
+%... Parameters for synthetic calculation, with wind at 10 m/s to the east,
+% T0 = 290 K, M = 0.25 tauC = 1000 s, d2H0 = 9.6 per mil, latitude gradient set to zero,
+% and fP = 0 (no evaporation).
+10	90	290	0.25	0	1000	9.6e-3	0	1
