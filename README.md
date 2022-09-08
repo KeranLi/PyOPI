@@ -48,11 +48,11 @@ Note that, for this synthetic example, some figure numbers are missing from the 
 Brandon et al. (2022b, 2022c) provide two real examples of the use of the OPI programs to analyze orographic precipitation and fractionation of water isotopes in the vicinity of the Patagonian Andes and the South-Central Andes. The Patagonia Andes case is used in Chang et al. (2022) to discuss the influence of evaporation on modern precipitation isotopes from that area. The South-Central Andes case is used in Fennell et al. (2022) as a basis for the interpreting precipitation isotope measurements from Cenozoic samples of hydrated volcanic glass. The research objective in Fennell et al. is the interpretation of the Cenozoic topographic evolution of area of Argentina east of the main Andes. The example in Brandon et al. (2022c) shows how opiPredict was used for this objective.
 
 ### References
-Brandon, M.T., 2022a, Matlab Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography. Zenodo. doi:10.5281/zenodo.7059205.
+Brandon, M.T., 2022a, Matlab Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography. Zenodo open-access repository.
+.
+Brandon, M.T., Chang, Q., and Hren, M.T., 2022b, Analysis of orographic precipitation and isotopes in the vicinity of the Patagonian Andes (latitude 37.6 to 32.4 S), Zenodo open-access repository.
 
-Brandon, M.T., Chang, Q., and Hren, M.T., 2022b, Analysis of orographic precipitation and isotopes in the vicinity of the Patagonian Andes (latitude 37.6 to 32.4 S), Zenodo, doi:10.5281/zenodo.7059234.
-
-Brandon, M.T., Fennell, L.M., and Hren, M.T., 2022c, Analysis of orographic precipitation and isotopes in the vicinity of the South-Central Andes (latitude 54.8 to 40.1 S), Zenodo, doi:10.5281/zenodo.7059238.
+Brandon, M.T., Fennell, L.M., and Hren, M.T., 2022c, Analysis of orographic precipitation and isotopes in the vicinity of the South-Central Andes (latitude 54.8 to 40.1 S), Zenodo open-access repository.
 
 Chang, Q., Brandon, M.T., and Hren, M.T., 2022, Topography, Evaporation and Precipitation Isotopes Across the Patagonian Andes (in review).
 
