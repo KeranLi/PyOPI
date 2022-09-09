@@ -50,9 +50,9 @@ Brandon et al. (2022b, 2022c) provide two real examples of the use of the OPI pr
 ### References
 Brandon, M.T., 2022a, Matlab Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography. Zenodo open-access repository.
 .
-Brandon, M.T., Chang, Q., and Hren, M.T., 2022b, Analysis of orographic precipitation and isotopes in the vicinity of the Patagonian Andes (latitude 37.6 to 32.4 S), Zenodo open-access repository.
+Brandon, M.T., Chang, Q., and Hren, M.T., 2022b, Analysis of orographic precipitation and isotopes in the vicinity of the Patagonian Andes (latitude 54.8 to 40.1 S), Zenodo open-access repository.
 
-Brandon, M.T., Fennell, L.M., and Hren, M.T., 2022c, Analysis of orographic precipitation and isotopes in the vicinity of the South-Central Andes (latitude 54.8 to 40.1 S), Zenodo open-access repository.
+Brandon, M.T., Fennell, L.M., and Hren, M.T., 2022c, Analysis of orographic precipitation and isotopes in the vicinity of the South-Central Andes (latitude 37.6 to 32.4 S), Zenodo open-access repository.
 
 Chang, Q., Brandon, M.T., and Hren, M.T., 2022, Topography, Evaporation and Precipitation Isotopes Across the Patagonian Andes (in review).
 
