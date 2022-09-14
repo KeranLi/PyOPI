@@ -1,6 +1,6 @@
 # OPI, Orographic Precipitation and Isotopes
 
-## Matlab Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography
+## MATLAB Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography
 
 ### Overview
 The Orographic Precipitation and Isotopes (OPI) programs provide computational tools for the analysis of precipitation and isotope fractionation associated with steady atmospheric flow over an arbitrary three-dimensional topography.
@@ -8,18 +8,18 @@ The Orographic Precipitation and Isotopes (OPI) programs provide computational t
 Author: Mark Brandon mark.brandon@yale.edu
 
 ### Requirements
-Matlab (currently running with Matlab 2022a).
+MATLAB (currently running with MATLAB 2022a).
 
-Regional-scale calculations may be limited by available memory. Personal experience indicates that about 10 to 20 GB are needed for a regional-scale problem. The opiFit program can be explicitly set to run in with multiple CPUs (parallel mode). Some Matlab functions will automatically make use of multiple CPUs, when available.
+Regional-scale calculations may be limited by available memory. Personal experience indicates that about 10 to 20 GB are needed for a regional-scale problem. The opiFit program can be explicitly set to run in with multiple CPUs (parallel mode). Some MATLAB functions will automatically make use of multiple CPUs, when available.
 
 ### Running the OPI programs
 Unzip the OPI package.
 
 The top level of the “OPI programs” directory contains the main functions for the programs.
 
-Supporting functions for the OPI programs are in the “private” subdirectory. The main input files are best stored in a “data” directory for the study area. These include a digital topography file (Matlab mat format), and a sample file with stable isotope data (Excel format). A run directory should be set up to hold the input and output for a specific run. This directory must contain a run file (text format), which defines variables used by the run, and the path and file names for the data files. Each run file includes comments to indicate the information needed. A run file is set up by editing an existing run file, such as the one included with the example for this release.
+Supporting functions for the OPI programs are in the “private” subdirectory. The main input files are best stored in a “data” directory for the study area. These include a digital topography file (MATLAB mat format), and a sample file with stable isotope data (Excel format). A run directory should be set up to hold the input and output for a specific run. This directory must contain a run file (text format), which defines variables used by the run, and the path and file names for the data files. Each run file includes comments to indicate the information needed. A run file is set up by editing an existing run file, such as the one included with the example for this release.
 
-To execute a program, load the main function into Matlab, and select the run option in the Matlab menu. The OPI program will then prompt the user to load one or two input files, which should be located in the run directory. The program will then run to completion, and produce a log file. Most programs also produce figures, and some will produce matfiles containing numerical results. All output is saved in the run directory, including a pdf for each figure.
+To execute a program, load the main function into MATLAB, and select the run option in the MATLAB menu. The OPI program will then prompt the user to load one or two input files, which should be located in the run directory. The program will then run to completion, and produce a log file. Most programs also produce figures, and some will produce matfiles containing numerical results. All output is saved in the run directory, including a pdf for each figure.
 
 Note that there are two sets of OPI programs, as indicated by the suffix to the program name. “OneWind” indicates programs that handle solutions (nine parameters) for single steady wind field. “TwoWinds” indicates programs that handle solutions (19 parameters) for a mixture of two unique steady wind fields.
 
