@@ -1,11 +1,11 @@
-# OPI (Orographic Precipitation and Isotopes) - Python
+## OPI (Orographic Precipitation and Isotopes) - Python
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 Python implementation of the OPI model for analyzing precipitation and isotope fractionation associated with steady atmospheric flow over topography.
 
-## 🚀 Quick Start
+### 🚀 Quick Start
 
 ```bash
 # Install
@@ -18,7 +18,7 @@ python -m opi calc-one-wind
 python -m opi test
 ```
 
-## 📁 Project Structure
+### 📁 Project Structure
 
 ```
 OPI_python/
@@ -35,29 +35,29 @@ OPI_python/
 └── README.md             # This file
 ```
 
-## 🎯 Features
+### 🎯 Features
 
-### Core Physics (Phase 1 ✅)
+#### Core Physics (Phase 1 ✅)
 - FFT terrain solution (Durran & Klemp 1982)
 - LTOP precipitation (Smith & Barstad 2004)
 - Isotope fractionation (Ciais & Jouzel 1994)
 - WBF zone handling
 
-### Application Layer (Phase 2 ✅)
+#### Application Layer (Phase 2 ✅)
 - Single wind field calculation
 - Two wind fields calculation
 - Parameter fitting with CRS3 optimization
 - Data loading (MAT/Excel)
 
-### Architecture (Refactored ✅)
+#### Architecture (Refactored ✅)
 - Type-safe data classes
 - Object-oriented design
 - Plugin system
 - Configuration management
 
-## 📖 Usage
+### 📖 Usage
 
-### Command Line
+#### Command Line
 
 ```bash
 # Information
@@ -73,7 +73,7 @@ python -m opi calc-two-winds [runfile]
 python -m opi fit-one-wind [runfile] --iter 10000
 ```
 
-### Python API
+#### Python API
 
 ```python
 from opi import opi_calc_one_wind
@@ -109,7 +109,7 @@ results = calculator.calculate(params)
 print(results.precipitation.mean)
 ```
 
-## 📚 Documentation
+### 📚 Documentation
 
 See the [docs/](docs/) directory for detailed documentation:
 
@@ -118,12 +118,10 @@ See the [docs/](docs/) directory for detailed documentation:
 - [Completion Report](docs/FINAL_COMPLETION_REPORT.md)
 - [Refactoring Guide](docs/REFACTORING_SUMMARY.md)
 
-## 🔧 Installation
+### 🔧 Installation
 
-### Requirements
-- Python 3.8+
-- NumPy, SciPy, Matplotlib
-- Pandas, XArray (optional)
+#### Requirements
+- Python 3.8+, NumPy, SciPy, Matplotlib,  Pandas, XArray (optional)
 
 ### Install
 
@@ -138,7 +136,7 @@ Or with optional dependencies:
 pip install -e ".[netcdf]"
 ```
 
-## 🧪 Testing
+### 🧪 Testing
 
 ```bash
 # Run all tests
@@ -149,7 +147,7 @@ python tests/test_installation.py
 python tests/verify_installation.py
 ```
 
-## 📊 Examples
+### 📊 Examples
 
 See [examples/](examples/) directory:
 
@@ -164,14 +162,14 @@ cd examples
 python comprehensive_example.py
 ```
 
-## 🏗️ Architecture
+### 🏗️ Architecture
 
 The project has two architectures:
 
-### Legacy (MATLAB-style)
+#### Legacy (MATLAB-style)
 Direct translation of MATLAB code. Simple but less structured.
 
-### Refactored (Pythonic)
+#### Refactored (Pythonic)
 New object-oriented architecture with:
 - Data classes for type safety
 - Abstract base classes for extensibility
@@ -180,18 +178,18 @@ New object-oriented architecture with:
 
 See [docs/REFACTORING_SUMMARY.md](docs/REFACTORING_SUMMARY.md) for details.
 
-## 📝 Citation
+### 📝 Citation
 
 Original MATLAB implementation:
 - Brandon, M.T., 2022. Matlab Programs for the Analysis of Orographic Precipitation and Isotopes.
 
 Python implementation:
-- AI Assistant, 2026. OPI Python Port.
+-Keran Li, 2026. OPI Python Port.
 
-## 📧 Contact
+### 📧 Contact
 
 Original Author: Mark Brandon (Yale University)  
-Python Port: AI Assistant
+Python Port: Keran Li (Nanjing University)
 
 ## 📄 License
 
