@@ -86,7 +86,7 @@ Examples:
 
 def cmd_calc_one_wind(args):
     """Run single wind field calculation."""
-    from .opi_calc_one_wind import opi_calc_one_wind
+    from .app.calc_one_wind import opi_calc_one_wind
     
     print("=" * 60)
     print("OPI Single Wind Field Calculation")
@@ -123,7 +123,7 @@ def cmd_calc_one_wind(args):
 
 def cmd_calc_two_winds(args):
     """Run two wind fields calculation."""
-    from .opi_calc_two_winds import opi_calc_two_winds
+    from .app.calc_two_winds import opi_calc_two_winds
     
     print("=" * 60)
     print("OPI Two Wind Fields Calculation")
@@ -163,7 +163,7 @@ def cmd_calc_two_winds(args):
 
 def cmd_fit_one_wind(args):
     """Run single wind field parameter fitting."""
-    from .opi_fit_one_wind import opi_fit_one_wind
+    from .app.fitting import opi_fit_one_wind
     
     print("=" * 60)
     print("OPI Single Wind Field Parameter Fitting")
@@ -195,7 +195,7 @@ def cmd_fit_one_wind(args):
 
 def cmd_fit_two_winds(args):
     """Run two wind fields parameter fitting."""
-    from .opi_fit_two_winds import opi_fit_two_winds
+    from .app.fitting import opi_fit_two_winds
     
     print("=" * 60)
     print("OPI Two Wind Fields Parameter Fitting")
