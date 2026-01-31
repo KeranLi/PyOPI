@@ -1,196 +1,135 @@
-## OPI (Orographic Precipitation and Isotopes) - Python
+# OPI Python - Orographic Precipitation and Isotopes
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+Python implementation of the OPI model for simulating orographic precipitation and isotope fractionation over 3D topography.
 
-Python implementation of the OPI model for analyzing precipitation and isotope fractionation associated with steady atmospheric flow over topography.
-
-### 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Install
-pip install -e .
-
-# Run calculation
-python -m opi calc-one-wind
+# Install dependencies
+pip install numpy scipy matplotlib pandas h5py
 
 # Run tests
 python -m opi test
+
+# Run single wind calculation
+python -m opi calc-one-wind
+
+# Run parameter fitting
+python -m opi fit-one-wind
 ```
 
-### 📁 Project Structure
+## Project Structure
 
 ```
-OPI_python/
-├── opi/                    # Main package
-│   ├── models/            # Data models (parameters, results, config)
-│   ├── core/              # Core abstractions (calculators, optimizers)
-│   ├── solvers/           # Physical solvers (FFT, precipitation, isotopes)
-│   ├── calculators/       # High-level calculators
-│   ├── io/                # Input/Output
-│   └── plugins/           # Plugin system
-├── examples/              # Example scripts
-├── tests/                 # Test data and scripts
-├── docs/                  # Documentation
-└── README.md             # This file
+opi/
+├── constants.py          # Physical constants
+├── utils.py              # Utility functions
+├── calc_one_wind.py      # Core calculation
+├── __init__.py           # Package exports
+├── __main__.py           # CLI entry point
+│
+├── physics/              # Atmospheric physics
+│   ├── thermodynamics.py     # Base state, vapor pressure
+│   ├── fractionation.py      # Isotope fractionation (H & O)
+│   ├── fourier.py            # FFT solution
+│   ├── precipitation.py      # LTOP precipitation
+│   └── isotope.py            # Isotope grids
+│
+├── io/                   # Input/output
+│   ├── coordinates.py        # Coordinate transforms
+│   └── data_loader.py        # Data loading
+│
+├── optimization/         # Optimization
+│   ├── crs3.py               # CRS3 optimizer
+│   └── wind_path.py          # Wind path
+│
+├── catchment/            # Catchment handling
+│   ├── nodes.py              # Catchment nodes
+│   └── indices.py            # Catchment indices
+│
+└── app/                  # Applications
+    ├── calc_one_wind.py      # Single wind CLI
+    ├── calc_two_winds.py     # Two-wind CLI
+    ├── fitting.py            # Parameter fitting
+    └── plotting.py           # Plotting
 ```
 
-### 🎯 Features
+## Usage
 
-#### Core Physics (Phase 1 ✅)
-- FFT terrain solution (Durran & Klemp 1982)
-- LTOP precipitation (Smith & Barstad 2004)
-- Isotope fractionation (Ciais & Jouzel 1994)
-- WBF zone handling
+### Python API
 
-#### Application Layer (Phase 2 ✅)
-- Single wind field calculation
-- Two wind fields calculation
-- Parameter fitting with CRS3 optimization
-- Data loading (MAT/Excel)
+```python
+import opi
 
-#### Architecture (Refactored ✅)
-- Type-safe data classes
-- Object-oriented design
-- Plugin system
-- Configuration management
+# Run calculation
+result = opi.opi_calc_one_wind(verbose=True)
 
-### 📖 Usage
-
-#### Command Line
-
-```bash
-# Information
-python -m opi info
-
-# Single wind calculation
-python -m opi calc-one-wind [runfile]
-
-# Two winds calculation
-python -m opi calc-two-winds [runfile]
+# Access physics functions
+from opi.physics import base_state, fourier_solution
 
 # Parameter fitting
-python -m opi fit-one-wind [runfile] --iter 10000
+result = opi.opi_fit_one_wind(max_iterations=1000)
 ```
 
-#### Python API
-
-```python
-from opi import opi_calc_one_wind
-
-# Simple usage
-result = opi_calc_one_wind(verbose=True)
-
-# With custom parameters
-solution = [10.0, 90.0, 290.0, 0.25, 0.0, 1000.0, -5e-3, -2e-3, 0.7]
-result = opi_calc_one_wind(solution_vector=solution)
-
-# Access results
-precip = result['results']['precipitation']
-d2h = result['results']['d2h']
-```
-
-### New Architecture (Refactored)
-
-```python
-from opi.calculators import OneWindCalculatorNew
-from opi.models import OPIConfig, OneWindParameters, WindField
-
-# Type-safe, object-oriented usage
-config = OPIConfig()
-calculator = OneWindCalculatorNew(config)
-
-params = OneWindParameters(
-    wind=WindField(speed=10.0, azimuth=90.0),
-    ...
-)
-
-results = calculator.calculate(params)
-print(results.precipitation.mean)
-```
-
-### 📚 Documentation
-
-See the [docs/](docs/) directory for detailed documentation:
-
-- [Functionality Analysis](docs/FUNCTIONALITY_GAP_ANALYSIS.md)
-- [Implementation Plan](docs/IMPLEMENTATION_PLAN.md)
-- [Completion Report](docs/FINAL_COMPLETION_REPORT.md)
-- [Refactoring Guide](docs/REFACTORING_SUMMARY.md)
-
-### 🔧 Installation
-
-#### Requirements
-- Python 3.8+, NumPy, SciPy, Matplotlib,  Pandas, XArray (optional)
-
-### Install
+### CLI Commands
 
 ```bash
-cd OPI_python
-pip install -e .
+python -m opi calc-one-wind [runfile]     # Single wind calculation
+python -m opi calc-two-winds [runfile]    # Two-wind calculation
+python -m opi fit-one-wind [runfile]      # Parameter fitting (1 wind)
+python -m opi fit-two-winds [runfile]     # Parameter fitting (2 winds)
+python -m opi test                        # Run test suite
+python -m opi info                        # Show package info
 ```
 
-Or with optional dependencies:
+## Modules
 
-```bash
-pip install -e ".[netcdf]"
-```
+### physics/ - Atmospheric Physics
 
-### 🧪 Testing
+- `base_state()` - Calculate atmospheric base state
+- `fourier_solution()` - FFT solution for flow over topography
+- `precipitation_grid()` - LTOP precipitation calculation
+- `isotope_grid()` - Isotope distribution calculation
+- `fractionation_hydrogen()` - H isotope fractionation
+- `fractionation_oxygen()` - O isotope fractionation
 
-```bash
-# Run all tests
-python -m opi test
+### io/ - Data I/O
 
-# Or individually
-python tests/test_installation.py
-python tests/verify_installation.py
-```
+- `lonlat2xy()` / `xy2lonlat()` - Coordinate transformations
+- `grid_read()` - Load topography from MAT file
+- `get_input()` - Load all input data
 
-### 📊 Examples
+### optimization/ - Optimization
 
-See [examples/](examples/) directory:
+- `fmin_crs3()` - CRS3 global optimizer
+- `wind_path()` - Calculate wind paths
 
-- `comprehensive_example.py` - Full feature demo
-- `complete_workflow_example.py` - Workflow demonstration
-- `single_wind_example.py` - Basic usage
+### catchment/ - Catchment Handling
 
-Run example:
+- `catchment_nodes()` - Calculate catchment nodes
+- `catchment_indices()` - Calculate catchment indices
 
-```bash
-cd examples
-python comprehensive_example.py
-```
+### app/ - High-Level Applications
 
-### 🏗️ Architecture
+- `opi_calc_one_wind()` - Single wind field calculation
+- `opi_calc_two_winds()` - Two wind fields calculation
+- `opi_fit_one_wind()` - Parameter fitting (1 wind)
+- `opi_fit_two_winds()` - Parameter fitting (2 winds)
+- `opi_plots_one_wind()` - Plot results
 
-The project has two architectures:
+## Dependencies
 
-#### Legacy (MATLAB-style)
-Direct translation of MATLAB code. Simple but less structured.
+- numpy
+- scipy
+- matplotlib
+- pandas
+- h5py
 
-#### Refactored (Pythonic)
-New object-oriented architecture with:
-- Data classes for type safety
-- Abstract base classes for extensibility
-- Plugin system for custom components
-- Configuration management
+## Documentation
 
-See [docs/REFACTORING_SUMMARY.md](docs/REFACTORING_SUMMARY.md) for details.
+- `PROJECT_STRUCTURE.md` - Detailed structure documentation
+- `docs/` - Additional documentation
 
-### 📝 Citation
+## License
 
-Original MATLAB implementation:
-- Brandon, M.T., 2022. Matlab Programs for the Analysis of Orographic Precipitation and Isotopes.
-
-Python implementation:
--Keran Li, 2026. OPI Python Port.
-
-### 📧 Contact
-
-Original Author: Mark Brandon (Yale University)  
-Python Port: Keran Li (Nanjing University)
-
-## 📄 License
-
-See [LICENSE](../LICENSE) file for details.
+See LICENSE file in parent directory.

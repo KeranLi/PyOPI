@@ -5,52 +5,99 @@ This package provides computational tools for the analysis of precipitation
 and isotope fractionation associated with steady atmospheric flow over 
 an arbitrary three-dimensional topography.
 
-For more information, see the documentation in README_PYTHON.md
+Main modules:
+- physics: Atmospheric physics calculations
+- io: Data loading and coordinate transformations  
+- optimization: Optimization algorithms (CRS3)
+- catchment: Catchment/watershed calculations
+- app: High-level application functions
 """
 
-# Import main functions for easy access
-from .opi_calc_one_wind import opi_calc_one_wind
-from .opi_calc_two_winds import opi_calc_two_winds
-from .opi_fit_one_wind import opi_fit_one_wind
-from .opi_fit_two_winds import opi_fit_two_winds
-from .opi_calc_two_winds import opi_calc_two_winds
-from . import utils
-from .opi_plots_one_wind import opi_plots_one_wind
+# Physics module
+from .physics import (
+    saturated_vapor_pressure,
+    base_state,
+    wind_grid,
+    fourier_solution,
+    precipitation_grid,
+    isotope_grid,
+    fractionation_hydrogen,
+    fractionation_oxygen,
+)
+
+# IO module
+from .io import (
+    lonlat2xy,
+    xy2lonlat,
+    grid_read,
+    get_input,
+)
+
+# Optimization module
+from .optimization import (
+    fmin_crs3,
+    CRS3Optimizer,
+    wind_path,
+)
+
+# Catchment module
+from .catchment import (
+    catchment_nodes,
+    catchment_indices,
+)
+
+# App module (high-level functions)
+from .app import (
+    opi_calc_one_wind,
+    opi_calc_two_winds,
+    opi_fit_one_wind,
+    opi_fit_two_winds,
+    opi_plots_one_wind,
+)
+
+# Legacy core functions (still available at package level)
 from .calc_one_wind import calc_one_wind
-from .base_state import base_state
-from .saturated_vapor_pressure import saturated_vapor_pressure
-from .coordinates import lonlat2xy, xy2lonlat
-from .wind_path import wind_path
-from .catchment_nodes import catchment_nodes
-from .catchment_indices import catchment_indices
-from .fourier_solution import fourier_solution, wind_grid
-from .precipitation_grid import precipitation_grid
-from .isotope_grid import isotope_grid
-from .fractionation_hydrogen import fractionation_hydrogen
-from .fractionation_oxygen import fractionation_oxygen
-from .get_input import get_input, grid_read, estimate_mwl
-from .fmin_crs3 import fmin_crs3, CRS3Optimizer
-from .constants import *
+from .utils import summarize_results
+
+# Constants
+from .constants import (
+    G, CPD, CPV, RD, L, P0, EPSILON,
+    RADIUS_EARTH, M_PER_DEGREE,
+    TC2K, HR, SD_RES_RATIO
+)
 
 __version__ = "1.0.0"
 __author__ = "AI Assistant (based on original work by Mark Brandon)"
+
 __all__ = [
-    # Main functions
+    # Physics
+    'base_state',
+    'saturated_vapor_pressure',
+    'wind_grid',
+    'fourier_solution',
+    'precipitation_grid',
+    'isotope_grid',
+    'fractionation_hydrogen',
+    'fractionation_oxygen',
+    # IO
+    'lonlat2xy',
+    'xy2lonlat',
+    'grid_read',
+    'get_input',
+    # Optimization
+    'fmin_crs3',
+    'wind_path',
+    # Catchment
+    'catchment_nodes',
+    'catchment_indices',
+    # App functions
     'opi_calc_one_wind',
     'opi_calc_two_winds',
     'opi_fit_one_wind',
+    'opi_fit_two_winds',
     'opi_plots_one_wind',
+    # Core
     'calc_one_wind',
-    
-    # Core utilities
-    'base_state',
-    'saturated_vapor_pressure',
-    'lonlat2xy', 
-    'xy2lonlat',
-    'wind_path',
-    'catchment_nodes',
-    'catchment_indices',
-    
     # Constants
     'G', 'CPD', 'CPV', 'RD', 'L', 'P0', 'EPSILON',
     'RADIUS_EARTH', 'M_PER_DEGREE',
