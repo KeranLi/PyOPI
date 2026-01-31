@@ -1,0 +1,27 @@
+Metadata-Version: 2.4
+Name: opi-orographic-precipitation-isotopes
+Version: 1.0.0
+Summary: Python implementation of Orographic Precipitation and Isotopes models
+Author: Mark Brandon (adapted to Python)
+Author-email: mark.brandon@yale.edu
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.8
+Requires-Dist: numpy>=1.21.0
+Requires-Dist: scipy>=1.7.0
+Requires-Dist: matplotlib>=3.4.0
+Requires-Dist: pandas>=1.3.0
+Requires-Dist: xarray>=0.19.0
+Requires-Dist: netcdf4>=1.5.0
+Requires-Dist: h5py>=3.0.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
