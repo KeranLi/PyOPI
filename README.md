@@ -1,433 +1,451 @@
-# OPI Python - Orographic Precipitation and Isotopes
+<!-- 
+  OPI Python - Orographic Precipitation and Isotopes
+  A complete Python implementation of the OPI model with MATLAB parity
+-->
 
-Complete Python implementation of the OPI model with **100% MATLAB feature parity** for simulating orographic precipitation and isotope fractionation over 3D topography.
+<div align="center">
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Jupyter](https://img.shields.io/badge/Jupyter-Ready-orange.svg)](notebooks/)
+## PyOPI: a python implementation for *Orographic Precipitation and Isotopes over 3D Topography*🏔️
+</div>
 
-## Features
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python 3.8+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+  <a href="notebooks/"><img src="https://img.shields.io/badge/Jupyter-Ready-orange.svg" alt="Jupyter"></a>
+</p>
 
-- ✅ **Complete atmospheric physics** - FFT solution, LTOP precipitation, isotope fractionation
-- ✅ **Velocity perturbations** - uPrime calculations and streamline tracing
-- ✅ **Parameter optimization** - CRS3 global optimizer for model fitting
-- ✅ **Paleoclimate support** - MEBM and benthic foram record integration
-- ✅ **MATLAB compatibility** - Read/write .mat files and run files
-- ✅ **Advanced visualization** - Haxby colormap, cmapscale, maps, cross-sections
-- ✅ **Jupyter Notebook support** - Interactive simulations
-- ✅ **Multiple data formats** - MATLAB, Excel, CSV, NetCDF, GeoTIFF, JSON
-- ✅ **Solutions management** - Complete solutions file I/O
-- ✅ **Command-line interface** - Full CLI for all operations
+<p align="center">
+  <img src="https://img.shields.io/badge/FFT%20Solver-✓-success" alt="FFT Solver">
+  <img src="https://img.shields.io/badge/LTOP%20Precipitation-✓-success" alt="LTOP Precipitation">
+  <img src="https://img.shields.io/badge/Isotope%20Fractionation-✓-success" alt="Isotope Fractionation">
+  <img src="https://img.shields.io/badge/CRS3%20Optimizer-✓-success" alt="CRS3 Optimizer">
+  <img src="https://img.shields.io/badge/MATLAB%20Compatible-✓-success" alt="MATLAB Compatible">
+</p>
 
-## Quick Start
+---
+<div align="center">
 
-### Installation
+#### [📖 Documentation](docs/) • [🚀 Quick Start](#quick-start) • [📓 Tutorials](notebooks/) • [🔬 Theory](#theoretical-background)
+
+</div>
+
+
+
+### 🎯 Overview
+
+OPI Python is a comprehensive implementation of the **Orographic Precipitation and Isotopes (OPI)** model, designed for atmospheric scientists, paleoclimatologists, and isotope hydrologists. The model simulates the spatial distribution of precipitation and its stable isotopic composition (δ²H, δ¹⁸O) over complex 3D topography using linear theory of orographic precipitation coupled with Rayleigh distillation.
+
+#### ✨ Key Features
+
+| Feature | Description | Status |
+|:--------|:------------|:------:|
+| **🌊 Atmospheric Physics** | FFT solution for linear mountain waves, LTOP microphysics, isotopic fractionation | ✅ |
+| **🌀 Velocity Perturbations** | Calculation of u′ perturbations and 3D streamline tracing | ✅ |
+| **⚡ Parameter Optimization** | CRS3 global optimizer for inverse modeling and Bayesian inference | ✅ |
+| **🌍 Paleoclimate** | Integration with MEBM and benthic foram δ¹⁸O records | ✅ |
+| **🔄 MATLAB Interop** | Read/write `.mat` files, parse legacy run files, solutions I/O | ✅ |
+| **📊 Scientific Viz** | Haxby colormap, cmapscale, topographic maps, cross-sections | ✅ |
+| **📓 Interactive** | Jupyter notebooks for exploratory modeling | ✅ |
+| **💾 Multi-format** | MATLAB, Excel, CSV, NetCDF, GeoTIFF, JSON support | ✅ |
+
+---
+
+## 🧪 Theoretical Background
+
+OPI combines **Linear Theory of Orographic Precipitation (LTOP)** with **Rayleigh distillation** to model:
+
+1. **Orographic Lift**: Analytical FFT solution for airflow over topography
+2. **Cloud Microphysics**: Box model for condensation timescales (τ_c)
+3. **Isotopic Fractionation**: Equilibrium and kinetic fractionation during phase changes
+4. **Moisture Tracking**: Streamline-based parcel history for isotopic evolution
+
+The model assumes linear perturbations to a background flow, suitable for moderate topography (|h| ≪ H_scale).
+
+---
+
+### ⚡ Quick Start
+
+#### Installation
 
 ```bash
+git clone https://github.com/username/OPI_python.git
 cd OPI_python
 pip install -e .
 ```
 
-### Run Tests
-
+Verify installation:
 ```bash
-python -m opi test
-python -m opi info
+python -m opi test        # Run test suite
+python -m opi info        # Display package information
 ```
 
-## Simulation Guide
+---
 
-### Method 1: Jupyter Notebook (Recommended for Learning)
+### 🚀 Usage Methods
+
+#### Method 1: Jupyter Notebook (Recommended for Learning)
 
 ```bash
 cd OPI_python/notebooks
 jupyter notebook 01_quick_start.ipynb
 ```
 
-**Available Notebooks:**
-- `01_quick_start.ipynb` - Basic simulation with synthetic data
-- `02_parameter_fitting.ipynb` - Parameter optimization
-- `03_data_formats.ipynb` - All supported data input formats
+**Tutorial Series:**
+| Notebook | Content |
+|:---------|:--------|
+| `01_quick_start.ipynb` | Basic simulation with synthetic Gaussian topography |
+| `02_parameter_fitting.ipynb` | CRS3 optimization and parameter sensitivity |
+| `03_data_formats.ipynb` | Loading DEMs from various sources (MATLAB, NetCDF, GeoTIFF) |
 
-**Quick Jupyter Example:**
-
+**Interactive Example:**
 ```python
 import opi
 import matplotlib.pyplot as plt
 
-# 1. Create synthetic topography
+# 1. Generate synthetic topography
 dem = opi.create_synthetic_dem(
     topo_type='gaussian',
-    amplitude=2000,
-    grid_size=(500e3, 500e3),
-    grid_spacing=(2000, 2000),
-    lon0=0, lat0=45,
-    output_file='topo.mat'
+    amplitude=2000,           # Mountain height [m]
+    grid_size=(500e3, 500e3), # Domain size [m]
+    grid_spacing=(2000, 2000) # Resolution [m]
 )
 
-# 2. Run simulation
+# 2. Run forward simulation
 result = opi.opi_calc_one_wind(verbose=True)
 
-# 3. Visualize
-cmap = opi.haxby()
-fig, ax = opi.plot_topography_map(dem['lon'], dem['lat'], dem['hGrid'], cmap=cmap)
+# 3. Visualize with Haxby colormap
+fig, ax = opi.plot_topography_map(
+    dem['lon'], dem['lat'], dem['hGrid'], 
+    cmap=opi.haxby()
+)
 plt.show()
 ```
 
-### Method 2: Python Script (Recommended for Production)
+#### Method 2: Python Script (Production Workflows)
 
 ```python
 #!/usr/bin/env python
-"""Simple OPI simulation script."""
+"""Production OPI simulation with explicit parameter control."""
 
 import numpy as np
 import opi
 from opi.calc_one_wind import calc_one_wind
 
-# Create grid
-x = np.linspace(-250000, 250000, 250)
-y = np.linspace(-250000, 250000, 250)
+# Generate computational grid
+x = np.linspace(-250000, 250000, 250)  # [m]
+y = np.linspace(-250000, 250000, 250)  # [m]
 X, Y = np.meshgrid(x, y)
 
-# Create topography (Gaussian mountain)
-h_grid = 2000 * np.exp(-(X**2 + Y**2) / (2 * 50000**2))
+# Define Gaussian topography
+h_grid = 2000 * np.exp(-(X**2 + Y**2) / (2 * 50000**2))  # [m]
 
-# Define parameters [U, azimuth, T0, M, kappa, tau_c, d2h0, d_d2h0_d_lat, f_p0]
-beta = np.array([10.0, 90.0, 290.0, 0.25, 0.0, 1000.0, -5e-3, -2e-3, 0.7])
+# Parameter vector: [U, azimuth, T0, M, kappa, tau_c, d2h0, d_d2h0_d_lat, f_p0]
+beta = np.array([
+    10.0,      # U: Wind speed [m/s]
+    90.0,      # azimuth: Wind direction [° from N]
+    290.0,     # T0: Sea-level temperature [K]
+    0.25,      # M: Mountain number [-]
+    0.0,       # kappa: Eddy diffusivity [m²/s]
+    1000.0,    # tau_c: Condensation timescale [s]
+    -5e-3,     # d2h0: Base δ²H [fraction]
+    -2e-3,     # d_d2h0_d_lat: Meridional gradient [fraction/°]
+    0.7        # f_p0: Residual precipitation fraction [-]
+])
 
-# Run simulation
-chi_r2, nu, std_residuals, z_bar, T, gamma_env, gamma_sat, \
-gamma_ratio, rho_s0, h_s, rho0, h_rho, d18o0, d_d18o0_d_lat, \
-tau_f, p_grid, f_m_grid, r_h_grid, evap_d2h_grid, u_evap_d2h_grid, \
-evap_d18o_grid, u_evap_d18o_grid, d2h_grid, d18o_grid, i_wet, \
-d2h_pred, d18o_pred = calc_one_wind(
+# Execute simulation
+outputs = calc_one_wind(
     beta=beta,
-    f_c=1e-4,
-    h_r=540,
+    f_c=1e-4,                    # Coriolis parameter [s⁻¹]
+    h_r=540,                     # Relative humidity [-]
     x=x, y=y,
-    lat=np.array([45.0]),
+    lat=np.array([45.0]),        # Latitude [°N]
     lat0=45.0,
     h_grid=h_grid,
-    b_mwl_sample=np.array([9.47e-3, 8.03]),
-    ij_catch=[[(125, 125)]],  # Simplified
-    ptr_catch=[0, 1],
-    sample_d2h=np.array([-100e-3]),
-    sample_d18o=np.array([-12.5e-3]),
-    cov=np.array([[1e-6, 0], [0, 1e-6]]),
-    n_parameters_free=9,
-    is_fit=False
+    b_mwl_sample=np.array([9.47e-3, 8.03]),  # Meteoric water line
+    # ... additional arguments
 )
 
-print(f"Simulation complete! Chi-square: {chi_r2:.4f}")
-print(f"Precipitation range: {p_grid.min()*1000*86400:.2f} - {p_grid.max()*1000*86400:.2f} mm/day")
+chi_r2, p_grid, d2h_grid, d18o_grid = outputs[0], outputs[17], outputs[23], outputs[25]
+
+print(f"✓ Simulation complete | χ²: {chi_r2:.4f}")
+print(f"  Precipitation: {p_grid.min()*1000*86400:.1f} – {p_grid.max()*1000*86400:.1f} mm/day")
 ```
 
-### Method 3: Run File (Recommended for Research)
+#### Method 3: Run Files (Research Reproducibility)
 
-**Step 1: Create run file**
-
+**Step 1:** Create configuration file
 ```python
 from opi.io import write_run_file
 
-run_data = {
-    'run_title': 'My Gaussian Mountain Simulation',
-    'is_parallel': False,
+run_config = {
+    'run_title': 'Alpine Gaussian Mountain Test',
     'data_path': './data',
     'topo_file': 'topography.mat',
-    'r_tukey': 0.25,
-    'sample_file': 'samples.xlsx',  # or 'no' for forward calculation
-    'cont_divide_file': None,
-    'restart_file': None,
-    'map_limits': [-3, 3, 42, 48],
-    'section_lon0': None,
-    'section_lat0': None,
-    'mu': 25,
-    'epsilon0': 1e-6,
+    'sample_file': 'samples.xlsx',  # Use 'no' for forward mode
+    'map_limits': [-3, 3, 42, 48],   # [lon_min, lon_max, lat_min, lat_max]
     'parameter_labels': ['U|azimuth|T0|M|kappa|tau_c|d2h0|d_d2h0_d_lat|f_p0'],
     'exponents': [0, 0, 0, 0, 0, 0, 3, 3, 0],
-    'l_b': [0.1, -30, 265, 0, 0, 0, -15e-3, -5e-3, 0.5],
-    'u_b': [25, 145, 295, 1.2, 1e6, 2500, 15e-3, 5e-3, 1.0],
+    'l_b': [0.1, -30, 265, 0, 0, 0, -15e-3, -5e-3, 0.5],   # Lower bounds
+    'u_b': [25, 145, 295, 1.2, 1e6, 2500, 15e-3, 5e-3, 1.0], # Upper bounds
     'beta': [10.0, 90.0, 290.0, 0.25, 0.0, 1000.0, -5e-3, -2e-3, 0.7]
 }
 
-write_run_file('my_run.run', run_data)
+write_run_file('alpine_simulation.run', run_config)
 ```
 
-**Step 2: Execute simulation**
-
+**Step 2:** Execute
 ```python
 import opi
 
 # Forward calculation
-result = opi.opi_calc_one_wind(run_file_path='my_run.run', verbose=True)
+result = opi.opi_calc_one_wind(run_file_path='alpine_simulation.run', verbose=True)
 
-# Parameter fitting
-result = opi.opi_fit_one_wind(run_file_path='my_run.run', verbose=True, max_iterations=1000)
+# Parameter optimization (inverse modeling)
+result = opi.opi_fit_one_wind(
+    run_file_path='alpine_simulation.run', 
+    verbose=True, 
+    max_iterations=1000
+)
 ```
 
-### Method 4: CLI (Command Line)
+#### Method 4: Command-Line Interface (Batch Processing)
 
 ```bash
-# Forward calculation
-python -m opi calc-one-wind my_run.run
+# Forward simulation
+python -m opi calc-one-wind config.run
 
-# Parameter fitting
-python -m opi fit-one-wind my_run.run
+# Parameter fitting with CRS3 optimizer
+python -m opi fit-one-wind config.run --max-iter 1000
 
-# Two-wind simulation
-python -m opi calc-two-winds my_run_two_winds.run
-python -m opi fit-two-winds my_run_two_winds.run
+# Two-wind simulations (seasonal contrasting)
+python -m opi calc-two-winds winter_summer.run
+python -m opi fit-two-winds winter_summer.run
 ```
 
-## Data Input Formats
+---
 
-OPI supports multiple data formats:
+### 📂 Data Input Formats
 
-### Topography Data
+#### Topography
 
-| Format | Function | Example |
-|:-------|:---------|:--------|
-| MATLAB .mat | `opi.io.grid_read()` | `x, y, h = grid_read('topo.mat')` |
-| Synthetic | `opi.create_synthetic_dem()` | `dem = create_synthetic_dem(...)` |
-| NumPy array | Direct | `h_grid = np.array(...)` |
-| NetCDF | `xarray.open_dataset()` | `ds = xr.open_dataset('topo.nc')` |
-| GeoTIFF | `rasterio.open()` | `src = rasterio.open('topo.tif')` |
+| Format | Function | Usage Example |
+|:-------|:---------|:--------------|
+| **MATLAB** | `opi.io.grid_read()` | `x, y, h = grid_read('dem.mat')` |
+| **Synthetic** | `opi.create_synthetic_dem()` | Gaussian, sinusoidal, ridge types |
+| **NetCDF** | `xarray.open_dataset()` | Climate model output |
+| **GeoTIFF** | `rasterio.open()` | SRTM/ASTER DEM products |
+| **NumPy** | Direct array | `h_grid = np.load('dem.npy')` |
 
-### Sample Data (Isotope Measurements)
+#### Isotope Samples
 
-| Format | Function | Required Columns |
-|:-------|:---------|:-----------------|
-| Excel .xlsx | `pd.read_excel()` | line, longitude, latitude, elevation, d2H, d18O, sample_type |
-| CSV | `pd.read_csv()` | Same as Excel |
-| NumPy | Direct | Arrays of sample coordinates and isotope values |
+| Format | Required Columns | Notes |
+|:-------|:-----------------|:------|
+| **Excel** (.xlsx) | line, longitude, latitude, elevation, d2H, d18O, sample_type | Standard field data |
+| **CSV** (.csv) | Same as above | Lightweight alternative |
+| **MATLAB** (.mat) | Structured array | Legacy OPI format |
 
-**Example Excel/CSV format:**
-
-```
-line,longitude,latitude,elevation,d2H,d18O,d_excess,sample_type
-1,-2.0,45.0,1500,-100,-12.5,10,C
-2,-1.5,45.0,1200,-95,-12.0,10,C
-...
+**Example sample file structure:**
+```csv
+line,longitude,latitude,elevation,d2H,d18O,sample_type
+1,-2.0,45.0,1500,-100.0,-12.5,C
+2,-1.5,45.0,1200,-95.0,-12.0,C
 ```
 
-### Example: Loading Different Data Formats
+---
 
-```python
-import opi
-import pandas as pd
-import numpy as np
+### ⚙️ Parameter Reference
 
-# 1. From MATLAB file
-from opi.io import grid_read
-x, y, h_grid = grid_read('my_topography.mat')
+The nine-dimensional parameter vector **β** for the OneWind model:
 
-# 2. From Excel/CSV
-samples = pd.read_excel('my_samples.xlsx')
-# or
-samples = pd.read_csv('my_samples.csv')
+| # | Parameter | Symbol | Unit | Physical Meaning | Valid Range |
+|:-:|:----------|:-------|:-----|:-----------------|:------------|
+| 1 | **Wind speed** | U | m/s | Background flow velocity | 0.1 – 25 |
+| 2 | **Azimuth** | α | ° | Wind direction (0° = N) | -30 – 145 |
+| 3 | **Temperature** | T₀ | K | Sea-level air temperature | 265 – 295 |
+| 4 | **Mountain number** | M | – | Nondimensional mountain height | 0 – 1.2 |
+| 5 | **Eddy diffusivity** | κ | m²/s | Turbulent mixing strength | 0 – 10⁶ |
+| 6 | **Condensation time** | τ_c | s | Cloud droplet growth timescale | 0 – 2500 |
+| 7 | **Base δ²H** | δ²H₀ | ‰ | Isotopic composition at reference | ±15‰ |
+| 8 | **δ²H gradient** | ∂δ²H/∂φ | ‰/° | Meridional isotopic gradient | ±5‰/° |
+| 9 | **Precip fraction** | f_p0 | – | Residual precipitation efficiency | 0.5 – 1.0 |
 
-# 3. From NetCDF (climate data)
-import xarray as xr
-ds = xr.open_dataset('climate_data.nc')
-h_grid = ds['topography'].values
+*Note: Parameters 7–9 use exponents [3, 3, 0] for scaling (i.e., inputs are multiplied by 10⁻³).*
 
-# 4. From GeoTIFF (GIS)
-import rasterio
-with rasterio.open('dem.tif') as src:
-    h_grid = src.read(1)
+---
 
-# 5. Create synthetic
-dem = opi.create_synthetic_dem(
-    topo_type='gaussian',      # or 'sinusoidal_east', 'sinusoidal_north', 'ridge'
-    amplitude=2000,
-    grid_size=(500e3, 500e3),
-    grid_spacing=(2000, 2000)
-)
-x, y, h_grid = dem['x'], dem['y'], dem['hGrid']
-```
+### 📊 Visualization
 
-## Parameter Reference
-
-The 9 parameters for OneWind model:
-
-| # | Parameter | Symbol | Unit | Description | Typical Range |
-|:-:|:----------|:-------|:-----|:------------|:--------------|
-| 1 | Wind speed | U | m/s | Horizontal wind speed | 0.1 - 25 |
-| 2 | Azimuth | azimuth | ° | Wind direction (from North) | -30 - 145 |
-| 3 | Temperature | T0 | K | Sea-level temperature | 265 - 295 |
-| 4 | Mountain number | M | - | Mountain height number | 0 - 1.2 |
-| 5 | Eddy diffusivity | kappa | m²/s | Turbulent diffusion | 0 - 1e6 |
-| 6 | Condensation time | tau_c | s | Cloud condensation timescale | 0 - 2500 |
-| 7 | Base d2H | d2h0 | fraction | Isotopic composition at base | ±15e-3 |
-| 8 | d2H gradient | d_d2h0_d_lat | fraction/° | Latitudinal gradient | ±5e-3 |
-| 9 | Precip fraction | f_p0 | - | Residual precipitation | 0.5 - 1.0 |
-
-## Visualization
+OPI provides publication-ready visualization tools:
 
 ```python
 import opi
 import matplotlib.pyplot as plt
 
-# Haxby colormap (oceanographic style)
-cmap = opi.haxby()
+# Scientific colormaps
+cmap_topo = opi.haxby()        # Bathymetry/topography style
+cmap_precip = opi.cmapscale(...) # Data-driven color scaling
 
-# Basic maps
-fig, ax = opi.plot_topography_map(lon, lat, h_grid, cmap=cmap)
-fig, ax = opi.plot_precipitation_map(lon, lat, p_grid)
+# Standard diagnostics
+fig, ax = opi.plot_topography_map(lon, lat, h_grid, cmap=cmap_topo)
+fig, ax = opi.plot_precipitation_map(lon, lat, p_grid * 1000 * 86400)  # Convert to mm/day
 fig, axes = opi.plot_isotope_map(lon, lat, d2h_grid, d18o_grid)
 
-# Standard plots
+# Data-model comparison
 fig, axes = opi.plot_sample_comparison(obs_d2h, obs_d18o, pred_d2h, pred_d18o)
 fig, axes = opi.plot_residuals(obs_d2h, obs_d18o, pred_d2h, pred_d18o, elevation)
-fig, ax = opi.plot_mwl(d18o, d2h)
 
-# Advanced plots
-fig, axes = opi.create_pair_plots({'d2H': d2h, 'd18O': d18o, 'elev': elev})
-fig, axes = opi.plot_cross_section(x, y, h_grid, d2h_grid)
+# Cross-sections
+fig, axes = opi.plot_cross_section(x, y, h_grid, d2h_grid, line='zonal')
 
-# Data-driven colormap
-cmap_scaled, ticks, labels = opi.cmapscale(
-    z=precip_grid,
-    cmap0=plt.cm.coolwarm(np.linspace(0, 1, 256)),
-    factor=0.8,      # Contrast (0-1)
-    z0=0,            # Center value
-    n_ticks=11,
-    n_round=0
-)
-
-# Export figure
-opi.print_figure('output.pdf', dpi=600)
+# Export
+opi.print_figure('figure_1.pdf', dpi=600, bbox_inches='tight')
 ```
 
-## MATLAB Compatibility
+---
 
-The Python version provides **100% compatibility** with MATLAB OPI:
+### 🔄 MATLAB Compatibility
+
+Seamless interoperability with legacy MATLAB OPI workflows:
 
 ```python
 from opi.io import load_opi_results, save_opi_results, parse_run_file
 
-# Load MATLAB results
-results = load_opi_results('opiCalc_Results.mat')
+# Load existing MATLAB results
+matlab_results = load_opi_results('previous_study/opiCalc_Results.mat')
 
-# Parse MATLAB run file
-run_data = parse_run_file('my_run.run')
+# Parse legacy run files
+config = parse_run_file('legacy_config.run')
 
-# Save results in MATLAB format
-save_opi_results('python_results.mat', results)
+# Export Python results to MATLAB format
+save_opi_results('python_results.mat', {
+    'chi_r2': chi_r2,
+    'p_grid': p_grid,
+    'd2h_grid': d2h_grid,
+    'beta_optimal': beta
+})
 ```
 
-### Solutions File I/O
+#### Solutions File Management
 
 ```python
-from opi.io import SolutionsFileWriter, parse_solutions_file, get_best_solution
+from opi.io import SolutionsFileWriter, get_best_solution
 
-# Write solutions during optimization
+# Track optimization progress
 with SolutionsFileWriter() as writer:
-    writer.initialize(
-        run_path='.',
-        run_title='My Optimization',
-        n_samples=10,
-        parameter_labels=['U', 'azimuth', 'T0', 'M', 'kappa', 
-                         'tau_c', 'd2h0', 'd_d2h0_d_lat', 'f_p0'],
-        exponents=[0, 0, 0, 0, 0, 0, 3, 3, 0],
-        lb=[0.1, -30, 265, 0, 0, 0, -15e-3, -5e-3, 0.5],
-        ub=[25, 145, 295, 1.2, 1e6, 2500, 15e-3, 5e-3, 1.0]
-    )
-    for i, (chi_r2, nu, beta) in enumerate(solutions):
-        writer.write_solution(i+1, chi_r2, nu, beta)
+    writer.initialize(run_path='.', run_title='Optimization', n_samples=50,
+                     parameter_labels=['U', 'azimuth', 'T0', 'M', 'kappa', 
+                                      'tau_c', 'd2h0', 'd_d2h0_d_lat', 'f_p0'])
 
-# Parse solutions file
-results = parse_solutions_file('.', 'opiFit_Solutions.txt')
-best = get_best_solution('.', 'opiFit_Solutions.txt')
+    for iteration, (chi2, dof, params) in enumerate(optimizer):
+        writer.write_solution(iteration, chi2, dof, params)
+
+# Retrieve best fit
+best_solution = get_best_solution('.', 'opiFit_Solutions.txt')
 ```
 
-## Advanced Features
+---
 
-### Paleoclimate Records
+### 🌏 Advanced Features
+
+#### Paleoclimate Reconstructions
+
+Integrate with Earth system model outputs and proxy records:
 
 ```python
 from opi.tools import calculate_climate_records
 
-T0_record, d2H0_record, age_record, T0_smooth, d2H0_smooth = \
-    calculate_climate_records(
-        mebm_file='MEBM_vary_OLR.mat',
-        benthic_file='Cramer2011BenthicForamClimate.mat',
-        lat=45.0,
-        T0_pres=288.15,
-        d2H0_pres=-100e-3,
-        d_d2H0_d_d18O0=8.0,
-        d_d2H0_d_T0=4.5e-3,
-        span_age=1.0
-    )
+T0_ts, d2H0_ts, age, T0_smooth, d2H0_smooth = calculate_climate_records(
+    mebm_file='MEBM_output.nc',
+    benthic_file='LR04_stack.mat',
+    lat=45.0,
+    T0_pres=288.15,      # Present-day temperature [K]
+    d2H0_pres=-100e-3,   # Present-day δ²H
+    span_age=1.0         # Smoothing window [Myr]
+)
 ```
 
-### Velocity Calculations
+#### 3D Streamline Tracing
 
 ```python
 from opi.physics import VelocityCalculator
 
-calc = opi.VelocityCalculator()
+calc = VelocityCalculator()
 calc.compute_fourier_solution(x, y, h_grid, U=10, azimuth=90, 
-                               NM=0.01, f_c=1e-4, h_rho=8000)
+                             NM=0.01, f_c=1e-4)
 
-# Calculate velocity perturbation
-u_prime = calc.calculate_u_prime(z_bar=1000, U=10, f_c=1e-4, h_rho=8000)
-
-# Calculate streamline
-x_l, y_l, z_l, s_l = calc.calculate_streamline(
-    x_l0=0, y_l0=0, z_l0=1000, azimuth=90, x=x, y=y,
-    U=10, f_c=1e-4, h_rho=8000
+# Trace air parcel trajectories
+x_traj, y_traj, z_traj, s_dist = calc.calculate_streamline(
+    x0=0, y0=0, z0=1000,  # Starting position [m]
+    x=x, y=y,
+    U=10, azimuth=90
 )
 ```
 
-## Project Structure
+---
+
+### 🗂️ Project Structure
 
 ```
 opi/
-├── physics/          # Atmospheric physics (8 modules)
-├── io/               # Data I/O (5 modules)
-├── optimization/     # Optimization (2 modules)
-├── catchment/        # Catchment (2 modules)
-├── app/              # Applications (4 modules)
-├── tools/            # Tools (2 modules)
-├── viz/              # Visualization (5 modules)
-├── infrastructure/   # System utilities
-└── notebooks/        # Jupyter notebooks (3 tutorials)
+├── 📁 physics/          # Core atmospheric physics
+│   ├── fft_solver.py    # Fourier solution for mountain waves
+│   ├── ltop.py          # Linear theory orographic precipitation
+│   └── isotopes.py      # Rayleigh distillation model
+├── 📁 io/               # Data I/O and MATLAB compatibility
+│   ├── matlab_io.py     # .mat file read/write
+│   ├── runfiles.py      # Run file parser/generator
+│   └── solutions.py     # Optimization solutions management
+├── 📁 optimization/     # Parameter estimation
+│   └── crs3.py          # Controlled Random Search 3 algorithm
+├── 📁 viz/              # Scientific visualization
+│   ├── colormaps.py     # Haxby, cmapscale
+│   └── maps.py          # Geographic plotting utilities
+├── 📁 notebooks/        # Tutorials
+│   ├── 01_quick_start.ipynb
+│   ├── 02_parameter_fitting.ipynb
+│   └── 03_data_formats.ipynb
+└── 📁 tests/            # Test suite
 ```
 
-## Dependencies
+### 📖 Citation
 
-- numpy >= 1.20
-- scipy >= 1.7
-- matplotlib >= 3.4
-- pandas >= 1.3
-- h5py >= 3.0
-- jupyter (optional, for notebooks)
-- xarray (optional, for NetCDF)
-- rasterio (optional, for GeoTIFF)
+If you use OPI Python in your research, please cite:
 
-## Documentation
+```bibtex
+@software{li_2026,
+  author = {Keran Li},
+  title = {OPI Python: Orographic Precipitation and Isotopes},
+  url = {https://github.com/KeranLi/PyOPI},
+  version = {1.0.0},
+  year = {2026},
+}
 
-- `README.md` - This file (overview and quick start)
-- `PROJECT_STRUCTURE.md` - Detailed project structure
-- `docs/MATLAB_PYTHON_COMPARISON.md` - Complete MATLAB vs Python comparison
-- `notebooks/` - Interactive tutorials
-
-## Citation
-
-Based on the original MATLAB OPI model by Mark Brandon, Yale University.
-
-```
-Brandon, M.T. (2022) Orographic Precipitation and Isotopes (OPI) Model v3.6
+@article{brandon_2022,
+  author = {Brandon, Mark T.},
+  title = {Orographic Precipitation and Isotopes (OPI) Model v3.6},
+  institution = {Yale University},
+  year = {2022},
+  note = {Original MATLAB implementation}
+}
 ```
 
-## License
+## 🤝 Contributing
 
-MIT License - See LICENSE file in parent directory.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
+- Bug reports and feature requests
+- Code style (PEP 8, Black formatter)
+- Documentation improvements
+- Adding new data format support
 
-## Support
+## 📜 License
 
-For issues and questions:
-1. Check the Jupyter notebooks in `notebooks/`
-2. Review `docs/MATLAB_PYTHON_COMPARISON.md` for migration help
-3. Run `python -m opi info` for package information
+MIT License. See [LICENSE](LICENSE) file for full text.
+
+---
+
+<div align="center">
+
+**Developed for the paleoclimate and isotope hydrology community**  
+*Maintained by Keran Li @ [Nanjing University](https://github.com/NJU-MET)*  
+*Original MATLAB version by Mark T. Brandon, Yale University*
+</div>
