@@ -11,6 +11,9 @@ Main modules:
 - optimization: Optimization algorithms (CRS3)
 - catchment: Catchment/watershed calculations
 - app: High-level application functions
+- tools: Utility tools (synthetic topography, climate records)
+- viz: Visualization functions
+- infrastructure: System utilities
 """
 
 # Physics module
@@ -23,6 +26,14 @@ from .physics import (
     isotope_grid,
     fractionation_hydrogen,
     fractionation_oxygen,
+    calculate_vertical_velocity,
+    calculate_lifting_max,
+    calculate_streamlines,
+    calculate_cloud_water,
+    calculate_relative_humidity,
+    calculate_ice_water_content,
+    VelocityCalculator,
+    calculate_u_prime,
 )
 
 # IO module
@@ -31,6 +42,14 @@ from .io import (
     xy2lonlat,
     grid_read,
     get_input,
+    load_opi_results,
+    save_opi_results,
+    parse_run_file,
+    write_run_file,
+    validate_run_data,
+    SolutionsFileWriter,
+    parse_solutions_file,
+    get_best_solution,
 )
 
 # Optimization module
@@ -54,6 +73,36 @@ from .app import (
     opi_fit_two_winds,
     opi_plots_one_wind,
 )
+
+# Tools module
+from .tools import (
+    gaussian_topography,
+    sinusoidal_topography,
+    ridge_topography,
+    create_synthetic_dem,
+    calculate_climate_records,
+    estimate_paleoclimate_parameters,
+)
+
+# Viz module
+from .viz import (
+    plot_topography_map,
+    plot_isotope_map,
+    plot_precipitation_map,
+    plot_sample_comparison,
+    plot_residuals,
+    plot_mwl,
+    plot_dexcess,
+    create_pair_plots,
+    plot_prediction,
+    plot_cross_section,
+    haxby,
+    cmapscale,
+    print_figure,
+)
+
+# Infrastructure
+from .infrastructure.paths import fn_persistent_path
 
 # Legacy core functions (still available at package level)
 from .calc_one_wind import calc_one_wind
@@ -79,11 +128,27 @@ __all__ = [
     'isotope_grid',
     'fractionation_hydrogen',
     'fractionation_oxygen',
+    'calculate_vertical_velocity',
+    'calculate_lifting_max',
+    'calculate_streamlines',
+    'calculate_cloud_water',
+    'calculate_relative_humidity',
+    'calculate_ice_water_content',
+    'VelocityCalculator',
+    'calculate_u_prime',
     # IO
     'lonlat2xy',
     'xy2lonlat',
     'grid_read',
     'get_input',
+    'load_opi_results',
+    'save_opi_results',
+    'parse_run_file',
+    'write_run_file',
+    'validate_run_data',
+    'SolutionsFileWriter',
+    'parse_solutions_file',
+    'get_best_solution',
     # Optimization
     'fmin_crs3',
     'wind_path',
@@ -96,6 +161,29 @@ __all__ = [
     'opi_fit_one_wind',
     'opi_fit_two_winds',
     'opi_plots_one_wind',
+    # Tools
+    'gaussian_topography',
+    'sinusoidal_topography',
+    'ridge_topography',
+    'create_synthetic_dem',
+    'calculate_climate_records',
+    'estimate_paleoclimate_parameters',
+    # Viz
+    'plot_topography_map',
+    'plot_isotope_map',
+    'plot_precipitation_map',
+    'plot_sample_comparison',
+    'plot_residuals',
+    'plot_mwl',
+    'plot_dexcess',
+    'create_pair_plots',
+    'plot_prediction',
+    'plot_cross_section',
+    'haxby',
+    'cmapscale',
+    'print_figure',
+    # Infrastructure
+    'fn_persistent_path',
     # Core
     'calc_one_wind',
     # Constants
