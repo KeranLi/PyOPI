@@ -136,7 +136,7 @@ def opi_fit_two_winds(run_file_path=None, divide_file=None, verbose=True, max_it
     param_bounds = [(bounds_lower[i], bounds_upper[i]) for i in range(19)]
     
     # Initial guess
-    if 'initial_guess' in run_data and len(run_data['initial_guess']) == 19:
+    if run_data.get('initial_guess') is not None and len(run_data['initial_guess']) == 19:
         initial_guess = np.array(run_data['initial_guess'])
     else:
         initial_guess = np.array([
