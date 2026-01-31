@@ -12,7 +12,9 @@ For more information, see the documentation in README_PYTHON.md
 from .opi_calc_one_wind import opi_calc_one_wind
 from .opi_calc_two_winds import opi_calc_two_winds
 from .opi_fit_one_wind import opi_fit_one_wind
+from .opi_fit_two_winds import opi_fit_two_winds
 from .opi_calc_two_winds import opi_calc_two_winds
+from . import utils
 from .opi_plots_one_wind import opi_plots_one_wind
 from .calc_one_wind import calc_one_wind
 from .base_state import base_state
