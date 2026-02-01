@@ -167,10 +167,10 @@ def plot_prediction(x_data, y_observed, y_predicted, x_label='X',
     return fig, axes
 
 
-def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None, 
+def plot_cross_section(x, y, h_grid, precip_grid=None, d2h_grid=None, d18o_grid=None, 
                       section_y=None, figsize=(16, 12), save_path=None):
     """
-    Plot cross-section through topography showing d2H and d18O isotopes.
+    Plot cross-section through topography showing precipitation, d2H and d18O.
     
     Parameters
     ----------
@@ -178,6 +178,8 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
         Grid vectors (m)
     h_grid : ndarray
         Topography grid (m)
+    precip_grid : ndarray, optional
+        Precipitation rate grid (kg/m^2/s). Will be converted to mm/day.
     d2h_grid : ndarray, optional
         d2H isotope grid (fraction, e.g., -0.0904 for -90.4 permil)
     d18o_grid : ndarray, optional
@@ -193,8 +195,6 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
     -------
     fig, axes : matplotlib objects
     """
-    from mpl_toolkits.mplot3d import Axes3D
-    
     if section_y is None:
         section_y = 0
     
@@ -204,37 +204,32 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
     # Extract cross-section
     h_section = h_grid[y_idx, :]
     
-    # Create figure with gridspec for better layout control
-    fig = plt.figure(figsize=figsize)
-    gs = fig.add_gridspec(3, 1, height_ratios=[1.5, 1.2, 1.2], hspace=0.25)
+    # Create 3 subplots: Precip, d2H, d18O (all 2D cross-sections)
+    fig, axes = plt.subplots(3, 1, figsize=figsize, sharex=True)
     
-    # ========== Subplot 1: 3D Topography ==========
-    ax1 = fig.add_subplot(gs[0], projection='3d')
-    X, Y = np.meshgrid(x/1000, y/1000)
-    
-    # Use terrain colormap for topography
-    surf = ax1.plot_surface(X, Y, h_grid/1000, cmap='terrain', 
-                            alpha=0.9, rstride=10, cstride=10, 
-                            linewidth=0, antialiased=True)
-    
-    ax1.set_xlabel('x (km)', labelpad=5)
-    ax1.set_ylabel('y (km)', labelpad=5)
-    ax1.set_zlabel('Elevation (km)', labelpad=5)
-    ax1.set_title('3D Topography')
-    
-    # Set consistent x limits with other subplots - full width
-    ax1.set_xlim([np.min(x)/1000, np.max(x)/1000])
-    ax1.set_ylim([np.min(y)/1000, np.max(y)/1000])
-    ax1.set_zlim([0, 6])  # Max 6km to match other subplots
-    
-    # Adjust view angle to show long x direction (more elongated in x)
-    ax1.view_init(elev=20, azim=-70)  # Moderate elevation for better view
-    
-    # Adjust the aspect ratio of the 3D plot box
-    ax1.set_box_aspect([3, 1.5, 1])  # [x, y, z] aspect - wider in x
+    # ========== Subplot 1: Precipitation Cross-section ==========
+    ax1 = axes[0]
+    if precip_grid is not None:
+        # Convert from kg/m^2/s to mm/day (1 kg/m^2/s = 1000 mm/s = 86400000 mm/day)
+        precip_section = precip_grid[y_idx, :] * 1000 * 86400
+        # Auto-determine color range
+        vmax_precip = np.ceil(precip_section.max() / 5) * 5  # Round up to nearest 5
+        im1 = ax1.pcolormesh(x/1000, np.linspace(0, 6, 100), 
+                            np.tile(precip_section, (100, 1)), 
+                            cmap='Blues', vmin=0, vmax=max(vmax_precip, 10))
+        ax1.fill_between(x/1000, 0, h_section/1000, color='white', alpha=1.0)
+        ax1.plot(x/1000, h_section/1000, 'k-', linewidth=1)
+        ax1.set_ylabel('Height (km)')
+        ax1.set_title(f'Precipitation Cross-section (mm/day) - Max: {precip_section.max():.1f}')
+        ax1.set_ylim([0, 6])
+        plt.colorbar(im1, ax=ax1, label='Precipitation (mm/day)')
+    else:
+        ax1.text(0.5, 0.5, 'Precipitation data not available', ha='center', va='center',
+                transform=ax1.transAxes, fontsize=14)
+        ax1.set_ylabel('Height (km)')
     
     # ========== Subplot 2: d2H Cross-section ==========
-    ax2 = fig.add_subplot(gs[1])
+    ax2 = axes[1]
     if d2h_grid is not None:
         d2h_section = d2h_grid[y_idx, :] * 1000  # Convert to permil
         # Auto-determine color range based on actual data
@@ -247,8 +242,7 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
         ax2.plot(x/1000, h_section/1000, 'k-', linewidth=1)
         ax2.set_ylabel('Height (km)')
         ax2.set_title(f'd2H Cross-section (permil) - Range: {d2h_section.min():.1f} to {d2h_section.max():.1f}')
-        ax2.set_xlim([np.min(x)/1000, np.max(x)/1000])
-        ax2.set_ylim([0, 6])  # Changed from 0-12 to 0-6 km
+        ax2.set_ylim([0, 6])
         plt.colorbar(im2, ax=ax2, label='d2H (permil)')
     else:
         ax2.text(0.5, 0.5, 'd2H data not available', ha='center', va='center', 
@@ -256,7 +250,7 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
         ax2.set_ylabel('Height (km)')
     
     # ========== Subplot 3: d18O Cross-section ==========
-    ax3 = fig.add_subplot(gs[2])
+    ax3 = axes[2]
     if d18o_grid is not None:
         d18o_section = d18o_grid[y_idx, :] * 1000  # Convert to permil
         # Auto-determine color range based on actual data
@@ -270,8 +264,7 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
         ax3.set_xlabel('Distance (km)')
         ax3.set_ylabel('Height (km)')
         ax3.set_title(f'd18O Cross-section (permil) - Range: {d18o_section.min():.1f} to {d18o_section.max():.1f}')
-        ax3.set_xlim([np.min(x)/1000, np.max(x)/1000])
-        ax3.set_ylim([0, 6])  # Changed from 0-12 to 0-6 km
+        ax3.set_ylim([0, 6])
         plt.colorbar(im3, ax=ax3, label='d18O (permil)')
     else:
         ax3.text(0.5, 0.5, 'd18O data not available', ha='center', va='center',
@@ -279,10 +272,9 @@ def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None,
         ax3.set_xlabel('Distance (km)')
         ax3.set_ylabel('Height (km)')
     
-    # Note: tight_layout is skipped for 3D plots to avoid warnings
-    # plt.tight_layout()
+    plt.tight_layout()
     
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
     
-    return fig, [ax1, ax2, ax3]
+    return fig, axes
