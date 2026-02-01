@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Brandon"
+  given-names: "Mark Thomas"
+  orcid: "https://orcid.org/0000-0002-9703-2038"
+title: "MATLAB Programs for the Analysis of Orographic Precipitation and Isotopes, with Implications for the Study of Paleotopography"
+version: OPI 3.6
+doi: 10.5281/zenodo.7063128
+date-released: 2022-09-08
+url: "https://github.com/foret37/OPI-Orographic-Precipitation-and-Isotopes"

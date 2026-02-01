@@ -2,18 +2,14 @@
 Isotope Grid Calculation
 
 Calculates the spatial distribution of precipitation isotopes (delta^2H and delta^18O)
-using a modified Rayleigh distillation model with:
-- Vertical averaging of fractionation factors
-- WBF (Water-ice Balance Fractionation) zone handling
-- Evaporative recycling effects
-- Upwind integration along streamlines
-- Latitudinal gradient correction
+using the mixed cloud isotopic model (MCIM) of Ciais and Jouzel (1994).
 
-Reference: Ciais and Jouzel, 1994 (MCIM model)
+Matches MATLAB isotopeGrid.m implementation exactly.
 """
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
+from scipy.integrate import cumulative_trapezoid
 from .fractionation import fractionation_hydrogen, fractionation_oxygen
 
 
@@ -22,6 +18,8 @@ def isotope_grid(s, t, s_xy, t_xy, lat, lat0, h_wind, f_m_wind, r_h_wind, f_p_wi
                  d2h0, d18o0, d_d2h0_d_lat, d_d18o0_d_lat, is_fit):
     """
     Calculate precipitation isotope (delta^2H, delta^18O) spatial distribution.
+    
+    Matches MATLAB isotopeGrid.m implementation.
     
     Parameters
     ----------
@@ -64,177 +62,228 @@ def isotope_grid(s, t, s_xy, t_xy, lat, lat0, h_wind, f_m_wind, r_h_wind, f_p_wi
     
     Returns
     -------
-    dict : Dictionary containing:
-        'd2h_grid' : ndarray - Hydrogen isotope grid (fraction)
-        'd18o_grid' : ndarray - Oxygen isotope grid (fraction)
-        'evap_d2h_grid' : ndarray - Evaporation effect on d2H
-        'u_evap_d2h_grid' : ndarray - Undersaturated evaporation effect
-        'evap_d18o_grid' : ndarray - Evaporation effect on d18O
-        'u_evap_d18o_grid' : ndarray - Undersaturated evaporation effect
+    dict : Dictionary containing isotope grids
     """
+    # Constants
+    d_ratio_2h = 0.9755  # Diffusivity ratio for hydrogen
+    d_ratio_18o = 0.9723  # Diffusivity ratio for oxygen
+    n = 1  # Exponent for evaporation fractionation
+    
     # Grid parameters
     d_s = s[1] - s[0]
     n_s, n_t = h_wind.shape
     
-    # Calculate fractionation factors along the vertical profile
-    # We need to average the fractionation over the condensation path
+    # Shear for bringing fall path to vertical
+    shear = U * tau_f / h_s
     
-    # Temperature range for condensation (from surface to ~12km)
-    z_levels = np.linspace(0, 12000, 100)
+    # Surface position with shear
+    s_surface_shear_wind = s[:, np.newaxis] + shear * h_wind
     
-    # Interpolate gamma_sat to these levels (assuming linear decrease with height)
-    # For simplicity, use the surface value
-    gamma_sat_surf = gamma_sat[0]
-    T_surf = T[0]
-    T_profile = T_surf - gamma_sat_surf * z_levels
+    # Surface temperature
+    t_ls_wind = T[0] - gamma_sat[0] * h_wind
     
-    # Calculate equilibrium fractionation factors at each level
-    alpha_d2h_profile = fractionation_hydrogen(T_profile, h_r=1.0, is_kinetic=False)
-    alpha_d18o_profile = fractionation_oxygen(T_profile, h_r=1.0, is_kinetic=False)
+    # Calculate zBar223Wind (height of 223K isotherm above surface)
+    z223_wind = z223_wind.copy()
+    s_shear_wind = s[:, np.newaxis] + shear * z223_wind
+    for j in range(n_t):
+        # Use first crossing where surface is steeper than fall path
+        s_col = s_shear_wind[:, j]
+        # Find monotonic increasing section
+        cummax_vals = np.maximum.accumulate(np.concatenate([[s_col[0] - 1], s_col[:-1]]))
+        i_monotonic = s_col > cummax_vals
+        if np.sum(i_monotonic) >= 2:
+            z223_wind[:, j] = np.interp(
+                s_surface_shear_wind[:, j],
+                s_shear_wind[i_monotonic, j],
+                z223_wind[i_monotonic, j],
+                left=z223_wind[0, j],
+                right=z223_wind[i_monotonic, j][-1] if np.any(i_monotonic) else z223_wind[0, j]
+            )
+    z_bar_223_wind = z223_wind - h_wind
     
-    # Vertically averaged fractionation factors
-    # Weighted by water vapor density (exponential decay with scale height h_s)
-    weights = np.exp(-z_levels / h_s)
-    weights = weights / np.sum(weights)
+    # Calculate zBar258Wind (height of 258K isotherm above surface)
+    z258_wind = z258_wind.copy()
+    s_shear_wind = s[:, np.newaxis] + shear * z258_wind
+    for j in range(n_t):
+        s_col = s_shear_wind[:, j]
+        cummax_vals = np.maximum.accumulate(np.concatenate([[s_col[0] - 1], s_col[:-1]]))
+        i_monotonic = s_col > cummax_vals
+        if np.sum(i_monotonic) >= 2:
+            z258_wind[:, j] = np.interp(
+                s_surface_shear_wind[:, j],
+                s_shear_wind[i_monotonic, j],
+                z258_wind[i_monotonic, j],
+                left=z258_wind[0, j],
+                right=z258_wind[i_monotonic, j][-1] if np.any(i_monotonic) else z258_wind[0, j]
+            )
+    z_bar_258_wind = z258_wind - h_wind
     
-    alpha_d2h_avg = np.sum(alpha_d2h_profile * weights)
-    alpha_d18o_avg = np.sum(alpha_d18o_profile * weights)
+    # Height of freezing surface above land surface (set to 0 where below surface)
+    z_bar_fs_wind = z_bar_258_wind.copy()
+    z_bar_fs_wind[z_bar_fs_wind < 0] = 0
     
-    # Calculate effective fractionation including kinetic effects
-    # where relative humidity is less than 1
-    alpha_d2h_eff = np.ones((n_s, n_t))
-    alpha_d18o_eff = np.ones((n_s, n_t))
+    # Differentiate ln(f_m) in wind direction
+    d_ln_f_m_d_s_wind = np.gradient(np.log(f_m_wind), d_s, axis=0)
     
-    for i in range(n_s):
-        for j in range(n_t):
-            h_r = r_h_wind[i, j]
-            alpha_d2h_eff[i, j] = fractionation_hydrogen(T_surf, h_r=h_r, is_kinetic=True)
-            alpha_d18o_eff[i, j] = fractionation_oxygen(T_surf, h_r=h_r, is_kinetic=True)
+    # ==================== HYDROGEN ISOTOPES ====================
     
-    # Calculate Rayleigh distillation along wind direction
-    # d/ds(f_m * delta) = -f_p * P * (delta - delta_vapor) / (U * h_r)
-    # where delta_vapor = delta / alpha
+    # Get specific equilibrium factors
+    a_ls_wind = fractionation_hydrogen(t_ls_wind)
+    a_258 = fractionation_hydrogen(258.0)
+    a_223 = fractionation_hydrogen(223.0)
     
-    # Initialize isotope grids
-    d2h_wind = np.zeros((n_s, n_t))
-    d18o_wind = np.zeros((n_s, n_t))
+    # Calculate fractionation factors by vertical averaging
+    # Subscripts A and B refer to above and below 258 K point
+    with np.errstate(divide='ignore', invalid='ignore'):
+        b_a = (a_223 - a_258) / (z_bar_223_wind - z_bar_258_wind)
+        b_a = np.nan_to_num(b_a, nan=0.0, posinf=0.0, neginf=0.0)
+        
+        b_b = (a_258 - a_ls_wind) / z_bar_258_wind
+        b_b = np.nan_to_num(b_b, nan=0.0, posinf=0.0, neginf=0.0)
     
-    # Upstream boundary condition (first column in s direction)
-    # Apply latitudinal gradient
-    # For simplicity, assume uniform upstream conditions here
-    # In full implementation, would need to calculate for each t
-    d2h_upwind = d2h0 + d_d2h0_d_lat * (lat.mean() - lat0)
-    d18o_upwind = d18o0 + d_d18o0_d_lat * (lat.mean() - lat0)
-    
-    d2h_wind[0, :] = d2h_upwind
-    d18o_wind[0, :] = d18o_upwind
-    
-    # Integrate along s direction (downwind)
-    for i in range(1, n_s):
-        for j in range(n_t):
-            f_m = f_m_wind[i, j]
-            f_p = f_p_wind[i, j]
-            
-            # Previous values
-            d2h_prev = d2h_wind[i-1, j]
-            d18o_prev = d18o_wind[i-1, j]
-            
-            # Vapor isotope ratio (accounting for fractionation)
-            d2h_vapor = d2h_prev / alpha_d2h_eff[i, j]
-            d18o_vapor = d18o_prev / alpha_d18o_eff[i, j]
-            
-            # Simple Euler integration
-            # d(delta)/ds = -f_p * (delta - delta_vapor) / (U * tau_f)
-            # This is a simplified version - full model would include
-            # more complex moisture and fractionation dynamics
-            
-            d_d2h_ds = -f_p * (d2h_prev - d2h_vapor) / (U * tau_f)
-            d_d18o_ds = -f_p * (d18o_prev - d18o_vapor) / (U * tau_f)
-            
-            d2h_wind[i, j] = d2h_prev + d_d2h_ds * d_s
-            d18o_wind[i, j] = d18o_prev + d_d18o_ds * d_s
-    
-    # Transform back to geographic grid
-    interp_func_d2h = RegularGridInterpolator(
-        (s, t), d2h_wind,
-        method='linear',
-        bounds_error=False,
-        fill_value=d2h_upwind
+    # Fractionation factor for precipitation (R_prec/R_vapor)
+    # Complex vertical averaging formula from MATLAB
+    a_prec_wind = (
+        ((a_258 + b_a * (h_s + z_bar_fs_wind - z_bar_258_wind)) * np.exp(-z_bar_fs_wind / h_r)
+         + a_ls_wind * (1 - np.exp(-z_bar_fs_wind / h_r))) * np.exp(-z_bar_fs_wind / h_s)
+        + b_b * (h_r**2 * h_s / (h_s + h_r)**2)
+        * (1 - (1 + (1/h_s + 1/h_r) * z_bar_fs_wind)
+           * np.exp(-(1/h_s + 1/h_r) * z_bar_fs_wind))
+        + a_ls_wind * (1 - np.exp(-z_bar_fs_wind / h_s))
     )
     
-    interp_func_d18o = RegularGridInterpolator(
-        (s, t), d18o_wind,
-        method='linear',
-        bounds_error=False,
-        fill_value=d18o_upwind
+    # Evaporative recycling
+    a_1_evap_wind = fractionation_hydrogen(t_ls_wind)
+    a_0_evap_wind = a_1_evap_wind * d_ratio_2h**(-n)
+    a_evap_wind = a_1_evap_wind * r_h_wind / (1 - a_0_evap_wind * (1 - r_h_wind))
+    
+    # Exponent for integration of evaporative fractionation
+    u_evap_d2h_wind = 1 / (a_0_evap_wind * (1 - r_h_wind)) - 1
+    u_evap_d2h_wind[r_h_wind == 1] = 0
+    
+    # Combine to get fractionation factor for residual precipitation
+    a_residual_vapor_wind = (
+        f_p_wind**u_evap_d2h_wind * a_prec_wind
+        + (1 - f_p_wind**u_evap_d2h_wind) * a_evap_wind
     )
     
-    d2h_grid = interp_func_d2h(np.column_stack([t_xy.ravel(), s_xy.ravel()])).reshape(s_xy.shape)
-    d18o_grid = interp_func_d18o(np.column_stack([t_xy.ravel(), s_xy.ravel()])).reshape(s_xy.shape)
+    # Integrate fractionation along wind direction
+    integrand = (a_residual_vapor_wind - 1) * d_ln_f_m_d_s_wind
+    r_prec_wind = (
+        a_prec_wind / a_prec_wind[0, :]
+        * np.exp(cumulative_trapezoid(integrand, dx=d_s, axis=0, initial=0))
+    )
     
-    # Evaporative recycling effects (simplified)
-    # In full implementation, would calculate these based on undersaturation
-    evap_d2h_grid = np.zeros_like(d2h_grid)
-    u_evap_d2h_grid = np.zeros_like(d2h_grid)
-    evap_d18o_grid = np.zeros_like(d18o_grid)
-    u_evap_d18o_grid = np.zeros_like(d18o_grid)
+    # Calculate evaporation grids if not fitting
+    evap_d2h_grid = None
+    u_evap_d2h_grid = None
+    if not is_fit:
+        d2h_evap_wind = (a_evap_wind / a_prec_wind) * r_prec_wind - 1
+        u_evap_d2h_grid = _interp_to_geo(u_evap_d2h_wind, s, t, s_xy, t_xy)
+        evap_d2h_grid = _interp_to_geo(d2h_evap_wind, s, t, s_xy, t_xy)
+    
+    # Transform to geographic grid and apply regional variation
+    d2h_grid = _finalize_isotope_grid(
+        r_prec_wind, s, t, s_xy, t_xy, d2h0, d_d2h0_d_lat, lat, lat0
+    )
+    
+    # ==================== OXYGEN ISOTOPES ====================
+    
+    # Get specific equilibrium factors
+    a_ls_wind = fractionation_oxygen(t_ls_wind)
+    a_258 = fractionation_oxygen(258.0)
+    a_223 = fractionation_oxygen(223.0)
+    
+    # Calculate fractionation factors by vertical averaging
+    with np.errstate(divide='ignore', invalid='ignore'):
+        b_a = (a_223 - a_258) / (z_bar_223_wind - z_bar_258_wind)
+        b_a = np.nan_to_num(b_a, nan=0.0, posinf=0.0, neginf=0.0)
+        
+        b_b = (a_258 - a_ls_wind) / z_bar_258_wind
+        b_b = np.nan_to_num(b_b, nan=0.0, posinf=0.0, neginf=0.0)
+    
+    # Fractionation factor for precipitation
+    a_prec_wind = (
+        ((a_258 + b_a * (h_s + z_bar_fs_wind - z_bar_258_wind)) * np.exp(-z_bar_fs_wind / h_r)
+         + a_ls_wind * (1 - np.exp(-z_bar_fs_wind / h_r))) * np.exp(-z_bar_fs_wind / h_s)
+        + b_b * (h_r**2 * h_s / (h_s + h_r)**2)
+        * (1 - (1 + (1/h_s + 1/h_r) * z_bar_fs_wind)
+           * np.exp(-(1/h_s + 1/h_r) * z_bar_fs_wind))
+        + a_ls_wind * (1 - np.exp(-z_bar_fs_wind / h_s))
+    )
+    
+    # Evaporative recycling
+    a_1_evap_wind = fractionation_oxygen(t_ls_wind)
+    a_0_evap_wind = a_1_evap_wind * d_ratio_18o**(-n)
+    a_evap_wind = a_1_evap_wind * r_h_wind / (1 - a_0_evap_wind * (1 - r_h_wind))
+    
+    # Exponent for integration
+    u_evap_d18o_wind = 1 / (a_0_evap_wind * (1 - r_h_wind)) - 1
+    u_evap_d18o_wind[r_h_wind == 1] = 0
+    
+    # Combine fractionation factors
+    a_residual_vapor_wind = (
+        f_p_wind**u_evap_d18o_wind * a_prec_wind
+        + (1 - f_p_wind**u_evap_d18o_wind) * a_evap_wind
+    )
+    
+    # Integrate along wind direction
+    integrand = (a_residual_vapor_wind - 1) * d_ln_f_m_d_s_wind
+    r_prec_wind = (
+        a_prec_wind / a_prec_wind[0, :]
+        * np.exp(cumulative_trapezoid(integrand, dx=d_s, axis=0, initial=0))
+    )
+    
+    # Calculate evaporation grids if not fitting
+    evap_d18o_grid = None
+    u_evap_d18o_grid = None
+    if not is_fit:
+        d18o_evap_wind = (a_evap_wind / a_prec_wind) * r_prec_wind - 1
+        u_evap_d18o_grid = _interp_to_geo(u_evap_d18o_wind, s, t, s_xy, t_xy)
+        evap_d18o_grid = _interp_to_geo(d18o_evap_wind, s, t, s_xy, t_xy)
+    
+    # Transform to geographic grid
+    d18o_grid = _finalize_isotope_grid(
+        r_prec_wind, s, t, s_xy, t_xy, d18o0, d_d18o0_d_lat, lat, lat0
+    )
     
     return {
         'd2h_grid': d2h_grid,
         'd18o_grid': d18o_grid,
-        'evap_d2h_grid': evap_d2h_grid,
-        'u_evap_d2h_grid': u_evap_d2h_grid,
-        'evap_d18o_grid': evap_d18o_grid,
-        'u_evap_d18o_grid': u_evap_d18o_grid
+        'evap_d2h_grid': evap_d2h_grid if evap_d2h_grid is not None else np.zeros_like(d2h_grid),
+        'u_evap_d2h_grid': u_evap_d2h_grid if u_evap_d2h_grid is not None else np.zeros_like(d2h_grid),
+        'evap_d18o_grid': evap_d18o_grid if evap_d18o_grid is not None else np.zeros_like(d18o_grid),
+        'u_evap_d18o_grid': u_evap_d18o_grid if u_evap_d18o_grid is not None else np.zeros_like(d18o_grid)
     }
+
+
+def _interp_to_geo(wind_data, s, t, s_xy, t_xy):
+    """Interpolate from wind grid to geographic grid."""
+    interp_func = RegularGridInterpolator(
+        (s, t), wind_data,
+        method='linear',
+        bounds_error=False,
+        fill_value=None
+    )
+    return interp_func(np.column_stack([s_xy.ravel(), t_xy.ravel()])).reshape(s_xy.shape)
+
+
+def _finalize_isotope_grid(r_prec_wind, s, t, s_xy, t_xy, iso0, d_iso0_d_lat, lat, lat0):
+    """
+    Finalize isotope calculation:
+    1) Transform to geographic grid
+    2) Convert from isotope ratio to delta representation
+    3) Account for regional variation
+    """
+    # Interpolate to geographic grid
+    r_prec_grid = _interp_to_geo(r_prec_wind, s, t, s_xy, t_xy)
+    
+    # Apply regional variation and convert to delta
+    iso_grid = (1 + iso0 + d_iso0_d_lat * (np.abs(lat.mean()) - np.abs(lat0))) * r_prec_grid - 1
+    
+    return iso_grid
 
 
 if __name__ == "__main__":
     print("Testing isotope_grid module...")
-    
-    # Create simple test grid
-    s = np.linspace(-50000, 50000, 50)
-    t = np.linspace(-50000, 50000, 50)
-    S, T_grid = np.meshgrid(s, t, indexing='ij')
-    
-    # Simple topography
-    h_wind = 2000 * np.exp(-(S**2 + T_grid**2) / (2 * 20000**2))
-    
-    # Other parameters
-    f_m_wind = np.ones_like(h_wind) * 0.8
-    r_h_wind = np.ones_like(h_wind) * 0.9
-    f_p_wind = np.ones_like(h_wind)
-    z223_wind = h_wind + 2000
-    z258_wind = h_wind + 1000
-    tau_f = 500.0
-    U = 10.0
-    T = np.linspace(290, 220, 100)
-    gamma_sat = np.ones(100) * 0.005
-    h_s = 4000.0
-    h_r = 540.0
-    
-    # Isotope parameters
-    d2h0 = -5.0e-3  # -50 permil
-    d18o0 = -0.5e-3  # -0.5 permil (approximate for MWL)
-    d_d2h0_d_lat = -2.0e-3  # -2 permil per degree
-    d_d18o0_d_lat = -0.2e-3
-    lat = np.array([45.0])
-    lat0 = 45.0
-    is_fit = False
-    
-    # Run isotope_grid
-    result = isotope_grid(
-        s, t, S, T_grid, lat, lat0, h_wind, f_m_wind, r_h_wind, f_p_wind,
-        z223_wind, z258_wind, tau_f, U, T, gamma_sat, h_s, h_r,
-        d2h0, d18o0, d_d2h0_d_lat, d_d18o0_d_lat, is_fit
-    )
-    
-    print(f"d2h_grid shape: {result['d2h_grid'].shape}")
-    print(f"d2h range: {result['d2h_grid'].min()*1000:.2f} to {result['d2h_grid'].max()*1000:.2f} permil")
-    print(f"d18o range: {result['d18o_grid'].min()*1000:.2f} to {result['d18o_grid'].max()*1000:.2f} permil")
-    
-    # Calculate deuterium excess
-    d_excess = (result['d2h_grid'] * 1000 - 8 * result['d18o_grid'] * 1000)
-    print(f"d-excess range: {d_excess.min():.2f} to {d_excess.max():.2f} permil")
-    
-    print("\nTest completed successfully!")
+    print("Run test_isotope.py for full tests")
