@@ -12,6 +12,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Requires-Python: >=3.8
+License-File: LICENSE
 Requires-Dist: numpy>=1.21.0
 Requires-Dist: scipy>=1.7.0
 Requires-Dist: matplotlib>=3.4.0
@@ -22,6 +23,7 @@ Requires-Dist: h5py>=3.0.0
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier
+Dynamic: license-file
 Dynamic: requires-dist
 Dynamic: requires-python
 Dynamic: summary

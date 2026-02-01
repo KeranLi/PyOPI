@@ -84,6 +84,57 @@ def wind_grid(x, y, azimuth):
     return Sxy, Txy, s, t, Xst, Yst
 
 
+def _validate_and_fix_h_grid(x, y, h_grid, function_name='fourier_solution'):
+    """
+    Validate and fix h_grid dimensions to match (y, x) coordinates.
+    
+    The expected format is h_grid.shape == (len(y), len(x)), following MATLAB's
+    convention where the first dimension corresponds to y (north) and the second
+    to x (east).
+    
+    Parameters
+    ----------
+    x, y : ndarray
+        Grid vectors.
+    h_grid : ndarray
+        Input topography grid.
+    function_name : str
+        Name of the calling function (for error messages).
+    
+    Returns
+    -------
+    h_grid_fixed : ndarray
+        Topography grid with correct shape (len(y), len(x)).
+    was_transposed : bool
+        True if the grid was transposed.
+    """
+    nx, ny = len(x), len(y)
+    shape = h_grid.shape
+    
+    # Expected shape: (ny, nx) - y dimension first, then x
+    expected_shape = (ny, nx)
+    
+    if shape == expected_shape:
+        return h_grid, False
+    elif shape == (nx, ny):
+        # Grid is transposed (x,y) instead of (y,x)
+        import warnings
+        warnings.warn(
+            f"{function_name}: h_grid shape {shape} appears to be (x, y) format. "
+            f"Transposing to (y, x) format {expected_shape}. "
+            f"To avoid this warning, ensure h_grid.shape == (len(y), len(x)).",
+            UserWarning, stacklevel=3
+        )
+        return h_grid.T, True
+    else:
+        raise ValueError(
+            f"{function_name}: h_grid shape {shape} does not match expected shapes. "
+            f"Expected (len(y), len(x)) = {expected_shape} or "
+            f"(len(x), len(y)) = {(nx, ny)}. "
+            f"Please check your input grid dimensions."
+        )
+
+
 def fourier_solution(x, y, h_grid, U, azimuth, NM, f_c, h_rho):
     """
     Calculates the Fourier solution for the linearized Euler equations
@@ -101,8 +152,12 @@ def fourier_solution(x, y, h_grid, U, azimuth, NM, f_c, h_rho):
         with x and y oriented in the east and north directions, respectively
         (vectors with lengths nX and nY, m).
     h_grid : ndarray
-        Geographic grid for topography, with x (east) in the row direction,
-        and y (north) in the column direction (matrix, nY x nX, m).
+        Geographic grid for topography, with dimensions (nY, nX) where
+        nY = len(y) and nX = len(x). This follows the MATLAB convention
+        where the first dimension corresponds to the y (north) coordinate
+        and the second dimension corresponds to the x (east) coordinate.
+        If your grid is in (nX, nY) format, it will be automatically transposed
+        with a warning.
     U : float
         Base-state wind speed (scalar, m/s).
     azimuth : float
@@ -131,20 +186,25 @@ def fourier_solution(x, y, h_grid, U, azimuth, NM, f_c, h_rho):
         'k_z' : ndarray
             Grid of vertical wavenumbers (complex matrix).
     """
+    # Validate and fix h_grid dimensions
+    h_grid_fixed, was_transposed = _validate_and_fix_h_grid(x, y, h_grid, 'fourier_solution')
+    
     # Transform topography to wind coordinates (s,t,z is right handed)
     Sxy, Txy, s, t, Xst, Yst = wind_grid(x, y, azimuth)
     
     # Interpolate h_grid onto wind grid
-    # Note: RegularGridInterpolator uses (y, x) order for meshgrid format
+    # RegularGridInterpolator expects points in (y, x) order
+    # h_grid_fixed is guaranteed to have shape (len(y), len(x))
     interp_func = RegularGridInterpolator(
         (y, x), 
-        h_grid, 
+        h_grid_fixed, 
         method='linear', 
         bounds_error=False, 
         fill_value=0
     )
     
-    # Create points for interpolation (flatten and stack)
+    # Create points for interpolation
+    # Yst and Xst have shape (len(s), len(t)) from ndgrid indexing
     points = np.column_stack([Yst.ravel(), Xst.ravel()])
     h_wind = interp_func(points).reshape(Xst.shape)
     

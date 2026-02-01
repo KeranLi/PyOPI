@@ -83,7 +83,7 @@ def plot_precipitation_map(lon, lat, p_grid, title='Precipitation Rate',
     fig, ax = plt.subplots(figsize=figsize)
     
     im = ax.pcolormesh(lon, lat, p_grid * 1000 * 86400, cmap=cmap, 
-                       shading='auto')  # Convert m/s to mm/day
+                       shading='auto', vmin=0, vmax=20)  # Convert m/s to mm/day, fixed scale 0-20
     
     cbar = plt.colorbar(im, ax=ax, label='Precipitation (mm/day)')
     ax.set_xlabel('Longitude')
@@ -128,7 +128,7 @@ def plot_isotope_map(lon, lat, d2h_grid, d18o_grid=None,
         
         # d2H map
         im1 = axes[0].pcolormesh(lon, lat, d2h_grid * 1000, cmap=cmap, 
-                                 shading='auto', vmin=-150, vmax=-50)
+                                 shading='auto', vmin=-90, vmax=10)
         plt.colorbar(im1, ax=axes[0], label='d2H (permil)')
         axes[0].set_xlabel('Longitude')
         axes[0].set_ylabel('Latitude')
@@ -136,7 +136,7 @@ def plot_isotope_map(lon, lat, d2h_grid, d18o_grid=None,
         
         # d18O map
         im2 = axes[1].pcolormesh(lon, lat, d18o_grid * 1000, cmap=cmap,
-                                 shading='auto', vmin=-20, vmax=-5)
+                                 shading='auto', vmin=-20, vmax=0)
         plt.colorbar(im2, ax=axes[1], label='d18O (permil)')
         axes[1].set_xlabel('Longitude')
         axes[1].set_ylabel('Latitude')
@@ -144,7 +144,7 @@ def plot_isotope_map(lon, lat, d2h_grid, d18o_grid=None,
     else:
         fig, ax = plt.subplots(figsize=figsize)
         im = ax.pcolormesh(lon, lat, d2h_grid * 1000, cmap=cmap,
-                          shading='auto', vmin=-150, vmax=-50)
+                          shading='auto', vmin=-90, vmax=10)
         plt.colorbar(im, ax=ax, label='d2H (permil)')
         ax.set_xlabel('Longitude')
         ax.set_ylabel('Latitude')

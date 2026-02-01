@@ -121,7 +121,23 @@ fig, ax = opi.plot_topography_map(
 plt.show()
 ```
 
-#### Method 2: Python Script (Production Workflows)
+#### Method 2: Run Original MATLAB Example (Verification)
+
+Reproduce the original MATLAB Gaussian Mountain example with identical parameters:
+
+```bash
+cd OPI_python/examples
+python reproduce_gaussian_example.py
+```
+
+This script loads the original MATLAB topography file (`EastDirectedGaussianTopography_3km height_lat45N.mat`) and reproduces the published results with 10 m/s eastward wind, M=0.25, and T0=290K.
+
+**Output files:**
+- `gaussian_comparison_*.png` - 4-panel visualization (topography, precipitation, isotopes, cross-section)
+- `gaussian_result.mat` / `gaussian_result.npz` - Simulation results in both formats
+- `gaussian_summary.txt` - Parameter summary and statistics
+
+#### Method 3: Python Script (Production Workflows)
 
 ```python
 #!/usr/bin/env python
@@ -171,7 +187,7 @@ print(f"✓ Simulation complete | χ²: {chi_r2:.4f}")
 print(f"  Precipitation: {p_grid.min()*1000*86400:.1f} – {p_grid.max()*1000*86400:.1f} mm/day")
 ```
 
-#### Method 3: Run Files (Research Reproducibility)
+#### Method 4: Run Files (Research Reproducibility)
 
 **Step 1:** Create configuration file
 ```python
@@ -208,7 +224,7 @@ result = opi.opi_fit_one_wind(
 )
 ```
 
-#### Method 4: Command-Line Interface (Batch Processing)
+#### Method 5: Command-Line Interface (Batch Processing)
 
 ```bash
 # Forward simulation

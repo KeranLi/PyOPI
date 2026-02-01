@@ -5,6 +5,8 @@ Calculates horizontal velocity perturbations from Fourier solution.
 Matches MATLAB's uPrime.m and streamline.m
 """
 
+from typing import Tuple
+
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 
