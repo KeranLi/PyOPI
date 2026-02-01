@@ -241,6 +241,7 @@ print("   Saved: 03_isotopes.png")
 from opi.viz import plot_cross_section
 fig, axes = plot_cross_section(
     x, y, h_grid, 
+    precip_grid=p_grid,  # kg/m^2/s, will be converted to mm/day in function
     d2h_grid=d2h_grid,
     d18o_grid=d18o_grid,
     section_y=0,
