@@ -14,6 +14,7 @@
   <a href="notebooks/"><img src="https://img.shields.io/badge/Jupyter-Ready-orange.svg" alt="Jupyter"></a>
 </p>
 
+
 <p align="center">
   <img src="https://img.shields.io/badge/FFT%20Solver-✓-success" alt="FFT Solver">
   <img src="https://img.shields.io/badge/LTOP%20Precipitation-✓-success" alt="LTOP Precipitation">
@@ -30,10 +31,13 @@
 </div>
 
 
-
 ### 🎯 Overview
 
 OPI Python is a comprehensive implementation of the **Orographic Precipitation and Isotopes (OPI)** model, designed for atmospheric scientists, paleoclimatologists, and isotope hydrologists. The model simulates the spatial distribution of precipitation and its stable isotopic composition (δ²H, δ¹⁸O) over complex 3D topography using linear theory of orographic precipitation coupled with Rayleigh distillation.
+
+<div align="center">
+    <img width="700" alt="image" src="https://private-user-images.githubusercontent.com/66153455/543434786-cd9dfc8a-4ee9-49aa-bb7f-e5404d89b83a.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Njk5NTc0MjAsIm5iZiI6MTc2OTk1NzEyMCwicGF0aCI6Ii82NjE1MzQ1NS81NDM0MzQ3ODYtY2Q5ZGZjOGEtNGVlOS00OWFhLWJiN2YtZTU0MDRkODliODNhLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjAyMDElMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYwMjAxVDE0NDUyMFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWNkZjE5ZjVlZTlmNGYzYjUxZDNkZGIyNDgzMTQzYmRiMzYyNWYzOWYyODFiZGZiMTRhMWMyZDFmNTViZGZhN2YmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.kJWpxGAjMOslH9OtD7OQ74KHala3fFaX02H3nE_zdnQ">
+    </div>
 
 #### ✨ Key Features
 
