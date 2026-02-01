@@ -167,11 +167,10 @@ def plot_prediction(x_data, y_observed, y_predicted, x_label='X',
     return fig, axes
 
 
-def plot_cross_section(x, y, h_grid, variable_grid, section_y=None,
-                      variable_name='Variable', cmap='RdYlBu_r',
-                      figsize=(12, 6), save_path=None):
+def plot_cross_section(x, y, h_grid, d2h_grid=None, d18o_grid=None, 
+                      section_y=None, figsize=(16, 12), save_path=None):
     """
-    Plot cross-section through topography showing a variable.
+    Plot cross-section through topography showing d2H and d18O isotopes.
     
     Parameters
     ----------
@@ -179,14 +178,12 @@ def plot_cross_section(x, y, h_grid, variable_grid, section_y=None,
         Grid vectors (m)
     h_grid : ndarray
         Topography grid (m)
-    variable_grid : ndarray
-        Variable to plot (e.g., precipitation, d2H)
+    d2h_grid : ndarray, optional
+        d2H isotope grid (fraction, e.g., -0.0904 for -90.4 permil)
+    d18o_grid : ndarray, optional
+        d18O isotope grid (fraction, e.g., -0.0124 for -12.4 permil)
     section_y : float, optional
         Y-coordinate of cross-section. If None, use center.
-    variable_name : str
-        Name of variable for labels
-    cmap : str
-        Colormap
     figsize : tuple
         Figure size
     save_path : str, optional
@@ -196,43 +193,96 @@ def plot_cross_section(x, y, h_grid, variable_grid, section_y=None,
     -------
     fig, axes : matplotlib objects
     """
+    from mpl_toolkits.mplot3d import Axes3D
+    
     if section_y is None:
         section_y = 0
     
     # Find nearest y index
     y_idx = np.argmin(np.abs(y - section_y))
     
-    # Extract cross-sections
+    # Extract cross-section
     h_section = h_grid[y_idx, :]
-    var_section = variable_grid[y_idx, :]
     
-    fig, axes = plt.subplots(2, 1, figsize=figsize, 
-                            gridspec_kw={'height_ratios': [1, 2]})
+    # Create figure with gridspec for better layout control
+    fig = plt.figure(figsize=figsize)
+    gs = fig.add_gridspec(3, 1, height_ratios=[1.5, 1.2, 1.2], hspace=0.25)
     
-    # Topography profile
-    ax = axes[0]
-    ax.fill_between(x/1000, 0, h_section/1000, color='brown', alpha=0.7)
-    ax.set_ylabel('Elevation (km)')
-    ax.set_title(f'Topography at y={section_y/1000:.1f} km')
-    ax.set_xlim([np.min(x)/1000, np.max(x)/1000])
-    ax.grid(True, alpha=0.3)
+    # ========== Subplot 1: 3D Topography ==========
+    ax1 = fig.add_subplot(gs[0], projection='3d')
+    X, Y = np.meshgrid(x/1000, y/1000)
     
-    # Variable profile
-    ax = axes[1]
-    im = ax.pcolormesh(x/1000, np.linspace(0, 12, 100), 
-                       np.tile(var_section, (100, 1)), cmap=cmap)
-    ax.fill_between(x/1000, 0, h_section/1000, color='white', alpha=1.0)
-    ax.plot(x/1000, h_section/1000, 'k-', linewidth=1)
-    ax.set_xlabel('Distance (km)')
-    ax.set_ylabel('Height (km)')
-    ax.set_title(f'{variable_name} Cross-section')
-    ax.set_xlim([np.min(x)/1000, np.max(x)/1000])
-    ax.set_ylim([0, 12])
-    plt.colorbar(im, ax=ax, label=variable_name)
+    # Use terrain colormap for topography
+    surf = ax1.plot_surface(X, Y, h_grid/1000, cmap='terrain', 
+                            alpha=0.9, rstride=10, cstride=10, 
+                            linewidth=0, antialiased=True)
     
-    plt.tight_layout()
+    ax1.set_xlabel('x (km)', labelpad=5)
+    ax1.set_ylabel('y (km)', labelpad=5)
+    ax1.set_zlabel('Elevation (km)', labelpad=5)
+    ax1.set_title('3D Topography')
+    
+    # Set consistent x limits with other subplots - full width
+    ax1.set_xlim([np.min(x)/1000, np.max(x)/1000])
+    ax1.set_ylim([np.min(y)/1000, np.max(y)/1000])
+    ax1.set_zlim([0, 6])  # Max 6km to match other subplots
+    
+    # Adjust view angle to show long x direction (more elongated in x)
+    ax1.view_init(elev=20, azim=-70)  # Moderate elevation for better view
+    
+    # Adjust the aspect ratio of the 3D plot box
+    ax1.set_box_aspect([3, 1.5, 1])  # [x, y, z] aspect - wider in x
+    
+    # ========== Subplot 2: d2H Cross-section ==========
+    ax2 = fig.add_subplot(gs[1])
+    if d2h_grid is not None:
+        d2h_section = d2h_grid[y_idx, :] * 1000  # Convert to permil
+        # Auto-determine color range based on actual data
+        vmin_d2h = np.floor(d2h_section.min() / 10) * 10  # Round down to nearest 10
+        vmax_d2h = np.ceil(d2h_section.max() / 10) * 10   # Round up to nearest 10
+        im2 = ax2.pcolormesh(x/1000, np.linspace(0, 6, 100), 
+                            np.tile(d2h_section, (100, 1)), 
+                            cmap='viridis_r', vmin=vmin_d2h, vmax=vmax_d2h)
+        ax2.fill_between(x/1000, 0, h_section/1000, color='white', alpha=1.0)
+        ax2.plot(x/1000, h_section/1000, 'k-', linewidth=1)
+        ax2.set_ylabel('Height (km)')
+        ax2.set_title(f'd2H Cross-section (permil) - Range: {d2h_section.min():.1f} to {d2h_section.max():.1f}')
+        ax2.set_xlim([np.min(x)/1000, np.max(x)/1000])
+        ax2.set_ylim([0, 6])  # Changed from 0-12 to 0-6 km
+        plt.colorbar(im2, ax=ax2, label='d2H (permil)')
+    else:
+        ax2.text(0.5, 0.5, 'd2H data not available', ha='center', va='center', 
+                transform=ax2.transAxes, fontsize=14)
+        ax2.set_ylabel('Height (km)')
+    
+    # ========== Subplot 3: d18O Cross-section ==========
+    ax3 = fig.add_subplot(gs[2])
+    if d18o_grid is not None:
+        d18o_section = d18o_grid[y_idx, :] * 1000  # Convert to permil
+        # Auto-determine color range based on actual data
+        vmin_d18o = np.floor(d18o_section.min() / 2) * 2  # Round down to nearest 2
+        vmax_d18o = np.ceil(d18o_section.max() / 2) * 2   # Round up to nearest 2
+        im3 = ax3.pcolormesh(x/1000, np.linspace(0, 6, 100), 
+                            np.tile(d18o_section, (100, 1)), 
+                            cmap='viridis_r', vmin=vmin_d18o, vmax=vmax_d18o)
+        ax3.fill_between(x/1000, 0, h_section/1000, color='white', alpha=1.0)
+        ax3.plot(x/1000, h_section/1000, 'k-', linewidth=1)
+        ax3.set_xlabel('Distance (km)')
+        ax3.set_ylabel('Height (km)')
+        ax3.set_title(f'd18O Cross-section (permil) - Range: {d18o_section.min():.1f} to {d18o_section.max():.1f}')
+        ax3.set_xlim([np.min(x)/1000, np.max(x)/1000])
+        ax3.set_ylim([0, 6])  # Changed from 0-12 to 0-6 km
+        plt.colorbar(im3, ax=ax3, label='d18O (permil)')
+    else:
+        ax3.text(0.5, 0.5, 'd18O data not available', ha='center', va='center',
+                transform=ax3.transAxes, fontsize=14)
+        ax3.set_xlabel('Distance (km)')
+        ax3.set_ylabel('Height (km)')
+    
+    # Note: tight_layout is skipped for 3D plots to avoid warnings
+    # plt.tight_layout()
     
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
     
-    return fig, axes
+    return fig, [ax1, ax2, ax3]

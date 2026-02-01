@@ -1,149 +1,165 @@
 """
 Isotope Fractionation
 
-Calculates the fractionation factors for hydrogen (delta^2H) and oxygen (delta^18O) 
-isotopes based on the Mixed Cloud Isotope Model (MCIM) of Ciais and Jouzel (1994).
+Based on MATLAB OPI implementation using:
+- Merlivat and Nief (1967) for ice-vapor and water-vapor (258-273 K)
+- Majoube (1971) for water-vapor (T >= 273.15 K)
+- Majoube (1970) for ice-vapor (oxygen)
+- Ciais and Jouzel (1994) for kinetic fractionation and WBF zone
 
-The model considers:
-1. Equilibrium fractionation (water-vapor and ice-vapor)
-2. Kinetic fractionation (diffusion effects)
-3. Mixed-phase region (WBF zone: 248-268 K)
-
-Reference: Ciais and Jouzel, 1994
+All formulas return alpha = R_condensate / R_vapor (> 1)
 """
 
 import numpy as np
 
 
-# Temperature thresholds
-T_L = 273.15         # Liquid water freezing point
-T_WBF_LOW = 248.0    # Lower bound of WBF zone
-T_WBF_HIGH = 268.0   # Upper bound of WBF zone
-
-
-def fractionation_hydrogen(T, h_r=1.0, is_kinetic=True):
+def fractionation_hydrogen(T):
     """
-    Calculate hydrogen isotope fractionation factor.
+    Calculate hydrogen isotope fractionation factor (liquid or ice / vapor).
+    
+    Matches MATLAB fractionationHydrogen.m exactly.
+    Returns alpha = R_precip / R_vapor (> 1)
     
     Parameters
     ----------
     T : float or ndarray
-        Temperature in Kelvin. Can be a scalar or array.
-    h_r : float or ndarray, optional
-        Relative humidity (0 to 1). Default is 1.0 (saturated).
-    is_kinetic : bool, optional
-        Whether to include kinetic fractionation. Default is True.
+        Temperature in Kelvin
     
     Returns
     -------
     alpha : float or ndarray
-        Fractionation factor (R_precip / R_vapor).
-        For delta notation: delta = (alpha - 1) * 1000 permil
+        Fractionation factor (always > 1)
     """
-    T = np.asarray(T)
-    alpha = np.zeros_like(T, dtype=float)
+    T = np.asarray(T, dtype=float)
+    TC2K = 273.15
     
-    # Equilibrium fractionation coefficients (Majoube, 1971)
-    # ln(alpha) = A1/T^2 + A2/T^3 for liquid
-    A1 = -52.612
-    A2 = 6282.0
+    # Ice-vapor calculation (Merlivat and Nief, 1967)
+    bivp3 = 0
+    bivp2 = 0
+    bivp1 = 0
+    biv0 = -9.45e-2
+    bivm1 = 0
+    bivm2 = 16289
+    bivm3 = 0
     
-    # ln(alpha) = B2/T^2 + B3/T^3 for ice
-    B2 = 16288.0
-    B3 = 0.0930
+    alpha_iv = np.exp(
+        bivp3 * T**3 + bivp2 * T**2 + bivp1 * T
+        + biv0
+        + bivm1 * T**-1 + bivm2 * T**-2 + bivm3 * T**-3
+    )
     
-    # Region 1: T > T_WBF_HIGH (liquid water)
-    mask_liquid = T > T_WBF_HIGH
-    if np.any(mask_liquid):
-        alpha[mask_liquid] = np.exp((A2 / T[mask_liquid] + A1) / T[mask_liquid])
+    # Kinetic effect for ice-vapor (Ciais and Jouzel, 1994)
+    sI = 1.02 - 0.0038 * (T - TC2K)
+    diffusivity_ratio = 0.9755
+    alpha_iv = alpha_iv * sI / ((alpha_iv * (sI - 1) / diffusivity_ratio) + 1)
     
-    # Region 2: T < T_WBF_LOW (ice)
-    mask_ice = T < T_WBF_LOW
-    if np.any(mask_ice):
-        alpha[mask_ice] = np.exp((B2 / T[mask_ice] + B3) / T[mask_ice])
+    # Water-vapor calculation (Majoube, 1971) for T >= 273.15 K
+    blvp3 = 0
+    blvp2 = 0
+    blvp1 = 0
+    blv0 = 52.612e-3
+    blvm1 = -76.248
+    blvm2 = 24.844e3
+    blvm3 = 0
     
-    # Region 3: WBF zone (mixed phase)
-    mask_wbf = (T >= T_WBF_LOW) & (T <= T_WBF_HIGH)
-    if np.any(mask_wbf):
-        T_wbf = T[mask_wbf]
-        f_ice = (T_WBF_HIGH - T_wbf) / (T_WBF_HIGH - T_WBF_LOW)
-        alpha_eq_liq = np.exp((A2 / T_WBF_HIGH + A1) / T_WBF_HIGH)
-        alpha_eq_ice = np.exp((B2 / T_WBF_LOW + B3) / T_WBF_LOW)
-        alpha[mask_wbf] = alpha_eq_liq + f_ice * (alpha_eq_ice - alpha_eq_liq)
+    alpha_lv_m71 = np.exp(
+        blvp3 * T**3 + blvp2 * T**2 + blvp1 * T
+        + blv0
+        + blvm1 * T**-1 + blvm2 * T**-2 + blvm3 * T**-3
+    )
     
-    # Apply kinetic fractionation
-    if is_kinetic:
-        diff_ratio = 0.975  # D_diff / 18O_diff (Merlivat, 1978)
-        n = 1.0  # For turbulent conditions
-        alpha_kin_factor = 1.0 + (diff_ratio**n - 1.0) * (1.0 - h_r)**n
-        alpha = alpha * alpha_kin_factor
+    # Water-vapor calculation (Merlivat and Nief, 1967) for 258-273 K
+    blvp3 = 0
+    blvp2 = 0
+    blvp1 = 0
+    blv0 = -10.0e-2
+    blvm1 = 0
+    blvm2 = 15013
+    blvm3 = 0
+    
+    alpha_lv_mn67 = np.exp(
+        blvp3 * T**3 + blvp2 * T**2 + blvp1 * T
+        + blv0
+        + blvm1 * T**-1 + blvm2 * T**-2 + blvm3 * T**-3
+    )
+    
+    # Merge calibration results at T = 273.15 K
+    i_switch = (T >= TC2K)
+    alpha_lv = i_switch * alpha_lv_m71 + ~i_switch * alpha_lv_mn67
+    
+    # Combine results for mixed phase (WBF zone: 248-268 K)
+    factor = (T - 248) / (268 - 248)
+    factor = np.clip(factor, 0, 1)
+    
+    alpha = alpha_lv * factor + alpha_iv * (1 - factor)
     
     return alpha
 
 
-def fractionation_oxygen(T, h_r=1.0, is_kinetic=True):
+def fractionation_oxygen(T):
     """
-    Calculate oxygen isotope fractionation factor.
+    Calculate oxygen isotope fractionation factor (liquid or ice / vapor).
+    
+    Matches MATLAB fractionationOxygen.m exactly.
+    Returns alpha = R_precip / R_vapor (> 1)
     
     Parameters
     ----------
     T : float or ndarray
-        Temperature in Kelvin. Can be a scalar or array.
-    h_r : float or ndarray, optional
-        Relative humidity (0 to 1). Default is 1.0 (saturated).
-    is_kinetic : bool, optional
-        Whether to include kinetic fractionation. Default is True.
+        Temperature in Kelvin
     
     Returns
     -------
     alpha : float or ndarray
-        Fractionation factor (R_precip / R_vapor).
+        Fractionation factor (always > 1)
     """
-    T = np.asarray(T)
-    alpha = np.zeros_like(T, dtype=float)
+    T = np.asarray(T, dtype=float)
+    TC2K = 273.15
     
-    # Equilibrium fractionation coefficients (Majoube, 1971)
-    # ln(alpha) = A1/T^2 + A2/T^3 for liquid
-    A1 = -2.0667
-    A2 = 0.0
+    # Ice-vapor (Majoube, 1970, Nature)
+    bivp3 = 0
+    bivp2 = 0
+    bivp1 = 0
+    biv0 = -28.224e-3
+    bivm1 = 11.839
+    bivm2 = 0
+    bivm3 = 0
     
-    # ln(alpha) = B2/T^2 + B3/T^3 for ice
-    B2 = 1136.0
-    B3 = 0.4156
+    alpha_iv = np.exp(
+        bivp3 * T**3 + bivp2 * T**2 + bivp1 * T
+        + biv0
+        + bivm1 * T**-1 + bivm2 * T**-2 + bivm3 * T**-3
+    )
     
-    # Region 1: Liquid water
-    mask_liquid = T > T_WBF_HIGH
-    if np.any(mask_liquid):
-        alpha[mask_liquid] = np.exp(A1 / T[mask_liquid] + A2 / T[mask_liquid]**2)
+    # Kinetic effect for ice-vapor
+    sI = 1.02 - 0.0038 * (T - TC2K)
+    diffusivity_ratio = 0.9723
+    alpha_iv = alpha_iv * sI / ((alpha_iv * (sI - 1) / diffusivity_ratio) + 1)
     
-    # Region 2: Ice
-    mask_ice = T < T_WBF_LOW
-    if np.any(mask_ice):
-        alpha[mask_ice] = np.exp((B2 / T[mask_ice] + B3) / T[mask_ice])
+    # Water-vapor (Majoube, 1971) for T >= 273.15 K
+    blvp3 = 0
+    blvp2 = 0
+    blvp1 = 0
+    blv0 = -2.0667e-3
+    blvm1 = -0.4156
+    blvm2 = 1.137e3
+    blvm3 = 0
     
-    # Region 3: WBF zone (mixed phase)
-    mask_wbf = (T >= T_WBF_LOW) & (T <= T_WBF_HIGH)
-    if np.any(mask_wbf):
-        T_wbf = T[mask_wbf]
-        f_ice = (T_WBF_HIGH - T_wbf) / (T_WBF_HIGH - T_WBF_LOW)
-        alpha_eq_liq = np.exp(A1 / T_WBF_HIGH + A2 / T_WBF_HIGH**2)
-        alpha_eq_ice = np.exp((B2 / T_WBF_LOW + B3) / T_WBF_LOW)
-        alpha[mask_wbf] = alpha_eq_liq + f_ice * (alpha_eq_ice - alpha_eq_liq)
+    alpha_lv = np.exp(
+        blvp3 * T**3 + blvp2 * T**2 + blvp1 * T
+        + blv0
+        + blvm1 * T**-1 + blvm2 * T**-2 + blvm3 * T**-3
+    )
     
-    # Apply kinetic fractionation
-    if is_kinetic:
-        n = 1.0
-        alpha_kin_factor = 1.0 + 0.5 * (1.0 - h_r)**n
-        alpha = alpha * alpha_kin_factor
+    # Combine results for mixed phase (WBF zone)
+    factor = (T - 248) / (268 - 248)
+    factor = np.clip(factor, 0, 1)
+    
+    alpha = alpha_lv * factor + alpha_iv * (1 - factor)
     
     return alpha
 
 
-def fractionation_hydrogen_simple(T):
-    """Simplified hydrogen fractionation without kinetic effects."""
-    return fractionation_hydrogen(T, h_r=1.0, is_kinetic=False)
-
-
-def fractionation_oxygen_simple(T):
-    """Simplified oxygen fractionation without kinetic effects."""
-    return fractionation_oxygen(T, h_r=1.0, is_kinetic=False)
+# Keep simple versions for backward compatibility
+fractionation_hydrogen_simple = fractionation_hydrogen
+fractionation_oxygen_simple = fractionation_oxygen
