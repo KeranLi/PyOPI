@@ -1,0 +1,52 @@
+
+OPI Gaussian Mountain Example - Reproduction Report
+===================================================
+
+Original: OPI Example Gaussian Mountain Range
+Run File: run_030_East-directed Gaussian at lat=45N With M=0.25, No evap
+
+Parameters:
+-----------
+Wind speed (U): 10.0 m/s
+Wind direction: 90бу (eastward)
+Temperature (T0): 290.0 K (16.9буC)
+Mountain number (M): 0.25
+Buoyancy frequency (NM): 0.0008 rad/s
+Condensation time: 1000 s
+Base d2H: -90.4 permil
+Evaporation: None (f_p0 = 1.0)
+
+Topography:
+-----------
+Peak height: 3001 m
+Grid: 701 x 701 points
+Location: 45.0буN, 0.0буE
+
+Results:
+--------
+Precipitation:
+  - Min: 0.00 mm/day
+  - Max: 57.24 mm/day
+  - Mean: 5.69 mm/day
+
+d2H (precipitation):
+  - Min: -90.4 permil
+  - Max: -74.7 permil
+  - Mean: -88.6 permil
+  - Range: 15.7 permil
+
+Physical Parameters:
+--------------------
+Gamma ratio: 0.9218
+Water vapor scale height: 2638 m
+Density scale height: 9618 m
+Fall time: 1251.2 s
+
+Output Files:
+-------------
+- 01_topography.png
+- 02_precipitation.png  
+- 03_isotopes.png
+- 04_cross_section.png
+- opi_results.mat (MATLAB format)
+- opi_results.npz (Python format)
