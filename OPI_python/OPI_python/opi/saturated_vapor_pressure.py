@@ -1,8 +1,11 @@
 """
 Calculate saturated vapor pressure as a function of temperature
+<<<<<<< HEAD:OPI_python/OPI_python/opi/saturated_vapor_pressure.py
 <<<<<<< HEAD:OPI_python/opi/saturated_vapor_pressure.py
 Based on the Tetens equation
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/saturated_vapor_pressure.py
 
 Based on Goff and Gratch (1946), as modified by Goff (1965).
 See review by Murphy and Koop (2005) for details.
@@ -10,12 +13,16 @@ See review by Murphy and Koop (2005) for details.
 The Wegener-Bergeron-Findeisen (WBF) zone, defined by the temperature
 range 268 to 248 K, is where water and ice coexist.
 For this zone, eS is set using weighted averages for water and ice components.
+<<<<<<< HEAD:OPI_python/OPI_python/opi/saturated_vapor_pressure.py
 >>>>>>> dev:opi/saturated_vapor_pressure.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/saturated_vapor_pressure.py
 """
 
 import numpy as np
 
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/saturated_vapor_pressure.py
 <<<<<<< HEAD:OPI_python/opi/saturated_vapor_pressure.py
 def saturated_vapor_pressure(temperature):
     """
@@ -44,6 +51,8 @@ def saturated_vapor_pressure(temperature):
     
     return e_s_pa
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/saturated_vapor_pressure.py
 def saturated_vapor_pressure(T):
     """
     Calculate saturated vapor pressure over water and ice.
@@ -96,4 +105,7 @@ def saturated_vapor_pressure(T):
     eS = eS_Ice * (1.0 - factor) + eS_Water * factor
     
     return eS
+<<<<<<< HEAD:OPI_python/OPI_python/opi/saturated_vapor_pressure.py
 >>>>>>> dev:opi/saturated_vapor_pressure.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/saturated_vapor_pressure.py

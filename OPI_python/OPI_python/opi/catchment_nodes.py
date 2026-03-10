@@ -1,10 +1,13 @@
 """
+<<<<<<< HEAD:OPI_python/OPI_python/opi/catchment_nodes.py
 <<<<<<< HEAD:OPI_python/opi/catchment_nodes.py
 Function to determine catchment nodes for sample points
 """
 
 import numpy as np
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/catchment_nodes.py
 Catchment Nodes Calculation
 
 Find nodes in h_grid that are upstream of each sample location.
@@ -15,11 +18,15 @@ Reference: MATLAB catchmentNodes.m by Mark Brandon, Yale University
 
 import numpy as np
 from scipy import ndimage
+<<<<<<< HEAD:OPI_python/OPI_python/opi/catchment_nodes.py
 >>>>>>> dev:opi/catchment_nodes.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/catchment_nodes.py
 
 
 def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
     """
+<<<<<<< HEAD:OPI_python/OPI_python/opi/catchment_nodes.py
 <<<<<<< HEAD:OPI_python/opi/catchment_nodes.py
     Determine catchment nodes for sample locations.
     
@@ -95,6 +102,8 @@ def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
     
     return ij_catch, ptr_catch
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/catchment_nodes.py
     Find nodes in h_grid that are upstream of each sample location.
     
     Parameters
@@ -276,4 +285,7 @@ if __name__ == "__main__":
         print(f"Sample {i} ({sample_lc[i]}): {len(indices)} nodes")
     
     print("\nTest completed successfully!")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/catchment_nodes.py
 >>>>>>> dev:opi/catchment_nodes.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/catchment_nodes.py

@@ -3,6 +3,7 @@ One-Wind Parameter Fitting Function for OPI
 
 This module implements the parameter fitting functionality for the 
 one-wind model using CRS3 global optimization algorithm.
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
 """
 
@@ -22,6 +23,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000):
     
     This function estimates the optimal parameters for the one-wind model
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
 
 This replicates the functionality of MATLAB's opiFit_OneWind.m
 """
@@ -45,7 +48,10 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
     Performs parameter fitting for the one-wind OPI model.
     
     This function estimates the optimal 9 parameters for the one-wind model
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     using observational data and CRS3 global optimization.
     
     Parameters:
@@ -57,13 +63,19 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         Whether to print detailed progress information.
     max_iterations : int, optional
         Maximum number of optimization iterations.
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     parallel : bool, optional
         Whether to use parallel processing (not yet implemented).
     restart_file : str, optional
         Path to restart file with previous solutions.
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     
     Returns:
     --------
@@ -75,6 +87,7 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         - 'iterations': number of iterations performed
         - 'convergence': convergence status
         - 'message': result status message
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
     """
     if verbose:
@@ -97,6 +110,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
     # Load input data
     data_path = os.path.join(run_dir, run_data['data_path'])
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         - 'results_path': path to saved results file
     """
     start_time = datetime.now()
@@ -131,11 +146,15 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
     
     if run_data.get('sample_file') is None:
         raise ValueError("Sample file is required for fitting")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     
     if verbose:
         print(f"\nLoading input data...")
         print(f"Data path: {data_path}")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
         print(f"Topography file: {run_data['topography_file']}")
     
@@ -178,6 +197,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
     n_free = np.sum(free_params)
     
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         print(f"Topography file: {run_data['topo_file']}")
         print(f"Sample file: {run_data['sample_file']}")
     
@@ -229,11 +250,15 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         # Load previous solutions for warm start
         pass  # TODO: implement restart functionality
     
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     if verbose:
         print(f"\nParameter fitting:")
         print(f"  Total parameters: 9")
         print(f"  Free parameters: {n_free}")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
         print(f"  Initial guess: {initial_guess}")
         print(f"  Optimization method: CRS3")
@@ -285,6 +310,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
                 f_c=input_data['f_c'],
                 h_r=input_data['h_r'],
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         print(f"  Fixed parameters: {9 - n_free}")
         print(f"  Initial guess: U={initial_guess[0]:.1f}, Az={initial_guess[1]:.1f}, T0={initial_guess[2]:.1f}")
         print(f"  Optimization method: CRS3")
@@ -309,11 +336,15 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
                 beta=beta,
                 f_c=input_data['f_c'],
                 h_r=input_data.get('h_r', HR),
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
                 x=input_data['x'],
                 y=input_data['y'],
                 lat=np.array([input_data['lat0']]),
                 lat0=input_data['lat0'],
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
                 h_grid=input_data['h_grid'],
                 b_mwl_sample=input_data['b_mwl_sample'],
@@ -322,18 +353,24 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
                 sample_d2h=sample_d2h,
                 sample_d18o=sample_d18o,
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
                 h_grid=h_grid,
                 b_mwl_sample=input_data['b_mwl_sample'],
                 ij_catch=ij_catch,
                 ptr_catch=ptr_catch,
                 sample_d2h=input_data['sample_d2h'],
                 sample_d18o=input_data['sample_d18o'],
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
                 cov=cov,
                 n_parameters_free=n_free,
                 is_fit=True
             )
             
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             # Extract chi-square
             chi_r2 = result[0]
@@ -350,6 +387,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
     
     # Extract free parameter bounds
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             chi_r2 = result[0]
             
             if np.isnan(chi_r2) or np.isinf(chi_r2):
@@ -367,7 +406,10 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
             return 1e6
     
     # Extract free parameter bounds and initial guess
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
     free_bounds = [param_bounds[i] for i in range(9) if free_params[i]]
     free_initial = initial_guess[free_params]
     
@@ -381,11 +423,15 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
             objective,
             free_bounds,
             mu=run_data.get('mu', 25),
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             epsilon=run_data.get('epsilon', 1e-6),
 =======
             epsilon=run_data.get('epsilon0', 1e-4),
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+            epsilon=run_data.get('epsilon0', 1e-4),
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             max_iter=max_iterations,
             random_state=42,
             verbose=verbose
@@ -398,26 +444,35 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
             print(f"  Function evaluations: {opt_result.nfev}")
         
         # Reconstruct full solution vector
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
         solution_vector = initial_guess.copy()
 =======
         solution_vector = bounds_lower.copy()
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+        solution_vector = bounds_lower.copy()
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         solution_vector[free_params] = opt_result.x
         
         # Calculate final results with full output
         final_result = calc_one_wind(
             beta=solution_vector,
             f_c=input_data['f_c'],
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             h_r=input_data['h_r'],
 =======
             h_r=input_data.get('h_r', HR),
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+            h_r=input_data.get('h_r', HR),
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             x=input_data['x'],
             y=input_data['y'],
             lat=np.array([input_data['lat0']]),
             lat0=input_data['lat0'],
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             h_grid=input_data['h_grid'],
             b_mwl_sample=input_data['b_mwl_sample'],
@@ -426,21 +481,29 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
             sample_d2h=sample_d2h,
             sample_d18o=sample_d18o,
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             h_grid=h_grid,
             b_mwl_sample=input_data['b_mwl_sample'],
             ij_catch=ij_catch,
             ptr_catch=ptr_catch,
             sample_d2h=input_data['sample_d2h'],
             sample_d18o=input_data['sample_d18o'],
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             cov=cov,
             n_parameters_free=n_free,
             is_fit=False
         )
         
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
         # Prepare output
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         # Unpack final results
         (chi_r2, nu, std_residuals, z_bar, T, gamma_env, gamma_sat, gamma_ratio,
          rho_s0, h_s, rho0, h_rho, d18o0, d_d18o0_d_lat, tau_f, p_grid, f_m_grid, r_h_grid,
@@ -455,12 +518,16 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         h_max = np.max(h_grid)
         NM = M * U / h_max
         
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
         param_names = ['U', 'azimuth', 'T0', 'M', 'kappa', 'tau_c', 'd2h0', 'd_d2h0_d_lat', 'f_p0']
         solution_params = dict(zip(param_names, solution_vector))
         
         derived_params = {
             'chi_r2': float(opt_result.fun),
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             'degrees_of_freedom': len(sample_d2h) - n_free,
             'T0_C': solution_vector[2] - 273.15,
@@ -469,6 +536,8 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         
         return {
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             'degrees_of_freedom': int(nu),
             'n_samples_wet': int(np.sum(i_wet)),
             'T0_C': float(T0 - TC2K),
@@ -534,7 +603,10 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
         
         return {
             'success': True,
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             'solution_params': solution_params,
             'derived_params': derived_params,
             'misfit': float(opt_result.fun),
@@ -542,12 +614,15 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
             'convergence': opt_result.success,
             'message': 'Optimization completed successfully',
             'solution_vector': solution_vector.tolist(),
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             'final_results': {
                 'precipitation': final_result[16] if len(final_result) > 16 else None,
                 'd2h': final_result[22] if len(final_result) > 22 else None,
                 'd18o': final_result[23] if len(final_result) > 23 else None
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             'results_path': results_path,
             'final_results': {
                 'precipitation': p_grid,
@@ -555,28 +630,38 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000,
                 'd18o': d18o_grid,
                 'd2h_pred': d2h_pred,
                 'd18o_pred': d18o_pred
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             }
         }
         
     except Exception as e:
         if verbose:
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             print(f"Optimization failed: {e}")
         return {
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             print(f"\nOptimization failed: {e}")
         import traceback
         traceback.print_exc()
         
         return {
             'success': False,
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             'solution_params': {},
             'derived_params': {},
             'misfit': np.nan,
             'iterations': 0,
             'convergence': False,
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_one_wind.py
             'message': f'Optimization failed: {str(e)}'
         }
@@ -698,6 +783,8 @@ if __name__ == "__main__":
     for param, value in result['solution_params'].items():
         print(f"  {param}: {value}")
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py
             'message': f'Optimization failed: {str(e)}',
             'results_path': None
         }
@@ -712,4 +799,7 @@ if __name__ == "__main__":
         print("Usage: python opi_fit_one_wind.py <run_file>")
         print("\nExample:")
         print("  python opi_fit_one_wind.py runs/run001/run001.run")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_one_wind.py
 >>>>>>> dev:opi/opi_fit_one_wind.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_one_wind.py

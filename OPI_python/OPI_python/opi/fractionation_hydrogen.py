@@ -1,6 +1,7 @@
 """
 Hydrogen Isotope Fractionation
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_hydrogen.py
 Calculates the fractionation factor for hydrogen isotopes (delta^2H)
 based on the Mixed Cloud Isotope Model (MCIM) of Ciais and Jouzel (1994).
@@ -12,6 +13,8 @@ The model considers:
 
 Reference: Ciais and Jouzel, 1994
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
 Given temperature T in Kelvin, returns fractionation factors for
 hydrogen isotopes for condensates water and ice relative to water vapor.
 
@@ -31,27 +34,37 @@ References
 - Merlivat and Nief, 1967 (ice-vapor equilibrium, -40 to 0 C)
 - Majoube, 1971 (water-vapor equilibrium, 273 to 373 K)
 - Merlivat, 1978 (diffusivity ratios)
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 >>>>>>> dev:opi/fractionation_hydrogen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
 """
 
 import numpy as np
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_hydrogen.py
 
 def fractionation_hydrogen(T, h_r=1.0, is_kinetic=True):
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
 # Kelvin to Celsius conversion
 TC2K = 273.15
 
 
 def fractionation_hydrogen(T):
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 >>>>>>> dev:opi/fractionation_hydrogen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
     """
     Calculate hydrogen isotope fractionation factor.
     
     Parameters
     ----------
     T : float or ndarray
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_hydrogen.py
         Temperature in Kelvin. Can be a scalar or array.
     h_r : float or ndarray, optional
@@ -61,6 +74,9 @@ def fractionation_hydrogen(T):
 =======
         Temperature in Kelvin. Can be scalar, vector, or array.
 >>>>>>> dev:opi/fractionation_hydrogen.py
+=======
+        Temperature in Kelvin. Can be scalar, vector, or array.
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
     
     Returns
     -------
@@ -70,6 +86,7 @@ def fractionation_hydrogen(T):
     
     Notes
     -----
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_hydrogen.py
     The fractionation factor alpha relates the isotope ratio in precipitation
     to that in vapor: R_precip = alpha * R_vapor
@@ -145,6 +162,8 @@ def fractionation_hydrogen(T):
         alpha_kin_factor = 1.0 + (diff_ratio**n - 1.0) * (1.0 - h_r)**n
         alpha = alpha * alpha_kin_factor
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
     The calculation includes:
     1. Equilibrium fractionation for ice-vapor and water-vapor
     2. Kinetic fractionation effect for ice (Ciais and Jouzel, 1994)
@@ -236,11 +255,15 @@ def fractionation_hydrogen(T):
     factor = np.clip(factor, 0.0, 1.0)
     
     alpha = alpha_LV * factor + alpha_IV * (1.0 - factor)
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 >>>>>>> dev:opi/fractionation_hydrogen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
     
     return alpha
 
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_hydrogen.py
 def fractionation_hydrogen_simple(T):
     """
@@ -280,6 +303,8 @@ if __name__ == "__main__":
         delta = (alpha - 1.0) * 1000.0
         print(f"  T = {T:.1f} K: delta = {delta:+.1f} permil")
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
 if __name__ == "__main__":
     print("Testing fractionation_hydrogen module...")
     print("(Comparing with MATLAB implementation)")
@@ -300,6 +325,9 @@ if __name__ == "__main__":
         alpha = fractionation_hydrogen(T)
         delta = (alpha - 1.0) * 1000.0
         print(f"  T = {T:6.1f} K: delta = {delta:+8.1f} permil")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_hydrogen.py
 >>>>>>> dev:opi/fractionation_hydrogen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_hydrogen.py
     
     print("\nTest completed successfully!")

@@ -3,6 +3,7 @@ Two-Wind Parameter Fitting Function for OPI
 
 This module implements parameter fitting for the two-wind model,
 which optimizes 19 parameters for two distinct moisture sources.
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
 """
 
@@ -18,6 +19,8 @@ from .constants import SD_RES_RATIO, HR
 
 def opi_fit_two_winds(run_file_path=None, divide_file=None, verbose=True, max_iterations=10000):
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
 
 This replicates the functionality of MATLAB's opiFit_TwoWinds.m
 """
@@ -189,7 +192,10 @@ def determine_sample_sides(sample_x, sample_y, cont_divide_x, cont_divide_y,
 
 def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
                       parallel=False):
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     """
     Performs parameter fitting for the two-wind OPI model.
     
@@ -198,6 +204,7 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
     
     Parameters:
     -----------
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
     run_file_path : str, optional
         Path to the run file containing model parameters and file paths
@@ -207,21 +214,31 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
     run_file_path : str
         Path to the run file containing model parameters and file paths
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+    run_file_path : str
+        Path to the run file containing model parameters and file paths
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     verbose : bool, optional
         Whether to print detailed progress information
     max_iterations : int, optional
         Maximum number of optimization iterations
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
 =======
     parallel : bool, optional
         Whether to use parallel processing
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+    parallel : bool, optional
+        Whether to use parallel processing
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     
     Returns:
     --------
     dict
         Dictionary containing fitted parameters and results
     """
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
     if verbose:
         print("OPI Two-Wind Parameter Fitting")
@@ -243,6 +260,8 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
     # Load input data
     data_path = os.path.join(run_dir, run_data['data_path'])
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     start_time = datetime.now()
     
     if verbose:
@@ -277,11 +296,15 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
     
     if run_data.get('sample_file') is None:
         raise ValueError("Sample file is required for fitting")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     
     if verbose:
         print(f"\nLoading input data...")
         print(f"Data path: {data_path}")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
     
     try:
@@ -382,6 +405,8 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
     n_free = np.sum(free_params)
     
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
         print(f"Topography file: {run_data['topo_file']}")
         print(f"Sample file: {run_data['sample_file']}")
         print(f"Continental divide file: {run_data['cont_divide_file']}")
@@ -451,11 +476,15 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
                            (bounds_lower + bounds_upper) / 2,
                            bounds_lower)
     
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     if verbose:
         print(f"\nParameter fitting:")
         print(f"  Total parameters: 19")
         print(f"  Free parameters: {n_free}")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
         print(f"  Optimization method: CRS3")
     
@@ -473,17 +502,23 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
         input_data['h_grid']
     )
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
         print(f"  Fixed parameters: {19 - n_free}")
         print(f"  Optimization method: CRS3")
         print(f"  Max iterations: {max_iterations}")
     
     # Prepare covariance
     cov = input_data.get('cov', np.array([[1e-6, 0], [0, 1e-6]]))
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
     
     # Objective function
     def objective(beta_free):
         """Calculate total chi-square for two-wind model."""
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
         beta = initial_guess.copy()
         beta[free_params] = beta_free
@@ -547,6 +582,8 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             
             return total_chi if not np.isnan(total_chi) else 1e6
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
         beta = bounds_lower.copy()
         beta[free_params] = beta_free
         
@@ -580,7 +617,10 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
                 return 1e6
             
             return chi_r2
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
             
         except Exception as e:
             return 1e6
@@ -599,11 +639,15 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             objective,
             free_bounds,
             mu=run_data.get('mu', 25),
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
             epsilon=run_data.get('epsilon', 1e-6),
 =======
             epsilon=run_data.get('epsilon0', 1e-4),
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+            epsilon=run_data.get('epsilon0', 1e-4),
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
             max_iter=max_iterations,
             random_state=42,
             verbose=verbose
@@ -613,6 +657,7 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             print(f"\nOptimization completed!")
             print(f"  Final misfit: {opt_result.fun:.6f}")
             print(f"  Iterations: {opt_result.n_iter}")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
         
         # Reconstruct solution
@@ -633,6 +678,8 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             'solution_params': solution_params,
             'solution_vector': solution_vector.tolist(),
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
             print(f"  Function evaluations: {opt_result.nfev}")
         
         # Reconstruct solution
@@ -723,11 +770,15 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             'success': True,
             'solution_params': solution_params,
             'derived_params': derived_params,
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
             'misfit': float(opt_result.fun),
             'iterations': opt_result.n_iter,
             'convergence': opt_result.success,
             'message': 'Optimization completed successfully',
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
             'sample_types': sample_types
 =======
@@ -735,10 +786,16 @@ def opi_fit_two_winds(run_file_path=None, verbose=True, max_iterations=10000,
             'results_path': results_path,
             'is_sample_side_01': is_sample_side_01
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+            'solution_vector': solution_vector.tolist(),
+            'results_path': results_path,
+            'is_sample_side_01': is_sample_side_01
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
         }
         
     except Exception as e:
         if verbose:
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 <<<<<<< HEAD:OPI_python/opi/opi_fit_two_winds.py
             print(f"Optimization failed: {e}")
         return {
@@ -860,6 +917,8 @@ if __name__ == "__main__":
         print(f"  T0: {result['solution_params']['wind2_T0']:.1f} K")
         print(f"\nFraction (Wind 2): {result['solution_params']['frac2']:.2f}")
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
             print(f"\nOptimization failed: {e}")
         import traceback
         traceback.print_exc()
@@ -883,4 +942,7 @@ if __name__ == "__main__":
         print("Usage: python opi_fit_two_winds.py <run_file>")
         print("\nExample:")
         print("  python opi_fit_two_winds.py runs/run001/run001.run")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/opi_fit_two_winds.py
 >>>>>>> dev:opi/opi_fit_two_winds.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/opi_fit_two_winds.py
