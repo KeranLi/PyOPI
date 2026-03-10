@@ -1,6 +1,7 @@
 """
 Oxygen Isotope Fractionation
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_oxygen.py
 Calculates the fractionation factor for oxygen isotopes (delta^18O)
 based on the Mixed Cloud Isotope Model (MCIM) of Ciais and Jouzel (1994).
@@ -9,6 +10,8 @@ Similar to hydrogen fractionation but with different coefficients.
 
 Reference: Ciais and Jouzel, 1994
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
 Given temperature T in Kelvin, returns fractionation factors for
 oxygen isotopes for condensates water and ice relative to water vapor.
 
@@ -28,27 +31,37 @@ References
 - Majoube, 1970 (ice-vapor equilibrium, -33 to 0 C)
 - Majoube, 1971 (water-vapor equilibrium, 273 to 373 K)
 - Merlivat, 1978 (diffusivity ratios)
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 >>>>>>> dev:opi/fractionation_oxygen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
 """
 
 import numpy as np
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_oxygen.py
 
 def fractionation_oxygen(T, h_r=1.0, is_kinetic=True):
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
 # Kelvin to Celsius conversion
 TC2K = 273.15
 
 
 def fractionation_oxygen(T):
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 >>>>>>> dev:opi/fractionation_oxygen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
     """
     Calculate oxygen isotope fractionation factor.
     
     Parameters
     ----------
     T : float or ndarray
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_oxygen.py
         Temperature in Kelvin. Can be a scalar or array.
     h_r : float or ndarray, optional
@@ -58,11 +71,15 @@ def fractionation_oxygen(T):
 =======
         Temperature in Kelvin. Can be scalar, vector, or array.
 >>>>>>> dev:opi/fractionation_oxygen.py
+=======
+        Temperature in Kelvin. Can be scalar, vector, or array.
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
     
     Returns
     -------
     alpha : float or ndarray
         Fractionation factor (R_precip / R_vapor).
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_oxygen.py
     
     Notes
@@ -126,6 +143,8 @@ def fractionation_oxygen(T):
         alpha_kin_factor = 1.0 + 0.5 * (1.0 - h_r)**n  # Simplified
         alpha = alpha * alpha_kin_factor
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
         For delta notation: delta = (alpha - 1) * 1000 permil
     
     Notes
@@ -196,11 +215,15 @@ def fractionation_oxygen(T):
     factor = np.clip(factor, 0.0, 1.0)
     
     alpha = alpha_LV * factor + alpha_IV * (1.0 - factor)
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 >>>>>>> dev:opi/fractionation_oxygen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
     
     return alpha
 
 
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 <<<<<<< HEAD:OPI_python/opi/fractionation_oxygen.py
 def fractionation_oxygen_simple(T):
     """
@@ -240,6 +263,8 @@ if __name__ == "__main__":
         delta = (alpha - 1.0) * 1000.0
         print(f"  T = {T:.1f} K: delta = {delta:+.2f} permil")
 =======
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
 if __name__ == "__main__":
     print("Testing fractionation_oxygen module...")
     print("(Comparing with MATLAB implementation)")
@@ -260,6 +285,9 @@ if __name__ == "__main__":
         alpha = fractionation_oxygen(T)
         delta = (alpha - 1.0) * 1000.0
         print(f"  T = {T:6.1f} K: delta = {delta:+7.2f} permil")
+<<<<<<< HEAD:OPI_python/OPI_python/opi/fractionation_oxygen.py
 >>>>>>> dev:opi/fractionation_oxygen.py
+=======
+>>>>>>> 763e46754822fb94efab4e507ef46c094eef6e44:opi/fractionation_oxygen.py
     
     print("\nTest completed successfully!")
