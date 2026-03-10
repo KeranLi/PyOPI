@@ -1,0 +1,105 @@
+Change Log, for OPI prorams
+Mark Brandon, Yale University, 2016 to 2022
+
+v. 3.6 July 24, 2022
+       Modified the termination criterion so 
+       mSet = mu*(nParametersFree + 1), 
+       mu0 = mu, and 
+       epsilon = stdev(F_searchSet).
+
+v. 3.6 August 8, 2021
+       Leeside calculation had an error, now fixed, where fP was left everywhere equal 
+       to 1, rather than being set to the candidate value, fP0, prescribed for each 
+       step of the search. This error has likely been active since 
+       March 23, 2021 (OPI 3.5).
+
+v. 3.6 July, 2021 
+       1) Converted calculation so that d2H is used as basis, rather d180. 
+       2) Set getInput so that all isotope samples are input from data file,
+       and the selection between primary and altered samples is done internal to 
+       program. The altered isotope samples are also saved as separate variables. 
+       3) Removed regional evaporation, and set so that evaporation 
+       options are automatically accounted for. 
+       5) Added a plot to show how dExcess varies as a function of the elevation
+       of liftMax relative to the sample elevation. 
+       5) Added a map showing relative humidity at the ground. 
+       6) Removed penalty option for dry samples. 
+
+v. 3.5 Sept - Dec, 2020: Adopted wind-oriented grids for all calculation,
+       and converted to the anelastic, saturated Euler equations of 
+       Durran and Klemp, 1982. Also includes options for regional or
+       leeside evaporation. 
+       Jan - Feb, 2021: Introduced lee-side evaporation. Corrected bugs associated
+       with evaporation calculation. Improved representation of temperature field.
+       Replaced parameter NS, the buoyancy frequency, with M, the mountain-height index.
+       Modified zero-padding in fourierSolution, from 2*nS x 2*nT, to 2*nS x nT. 
+       Modified opiMaps (both one wind and two winds) so that the gray color scale 
+       for cloud water density starts at 1e-2*max(rhoC). Fixed an error with the
+       time delays, which were operating backwards. 
+       
+v. 3.4 July 2019: Introduced "two winds" version, which will be 
+       developed in parallel with the "one wind" version. 
+       Sept 26, 2019: Search is now based on a generalized objective 
+       function, which accounts for the misfit, as measured by 
+       chiR2, and an optional penalty function. The penalty function 
+       is used here to test best-fit solutions that have a 
+       a large fraction of dry samples. 
+v. 3.2 (OneWind) modify to account for catchment above each sample 
+       location,removed weights, fixed liftingMax to works with any 
+       wind direction. fminCRS3 is now using omega = 1000 to ensure 
+       better convergence. Input data should now use cosine taper 
+       remove edge effects for topographic data.
+v. 3.1 combines 3.0.4 and 3.0.5, and includes some improvements
+       and modifications. 
+v. 3.0.5 accounts for evaporative recycling from the ground with n = 1, 
+       and direct fit of d2H0 and d18O0, 
+       inverse probability weighting (IPW), Si functions
+       from Ciais and Jouzel (1994), tauF is set by mean fall height,
+       and weighted orthogonal least squares (WOLS) for MWL,
+       and covariance weighting for residuals.
+v. 3.0.4 accounts for evaporative recycling from the ground with n = 1, 
+       and also uses d2H0 and d18O0 as set by empirical function of T0, 
+       inverse probability weighting (IPW), Si functions
+       from Ciais and Jouzel (1994), tauF is set by mean fall height,
+       and weighted orthogonal least squares (WOLS) for MWL,
+       and covariance weighting for residuals.
+v. 3.0.3 accounts for evaporative recycling from the ground with n = 1, 
+       and also uses d2H0 and d18O0 as set by empirical function of T0, 
+       inverse probability weighting (IPW), Si functions
+       from Ciais and Jouzel (1994), tauF is set by mean fall height,
+       and weighted orthogonal least squares (WOLS) for MWL,
+       and misfit based on WOLS relative to the best-fit MWL.
+v. 3.0.2 same as 3.0.0 but with evaporative exponent n = 0.5.
+v. 3.0.1 same as 3.0.0 but with evaporative exponent n = 0.5, and 
+       directly fitting for d2H0 and d18O0.
+v. 3.0.0 accounts for evaporative recycling from the ground, and also
+       uses d2H0 and d18O0 as set by empirical function of T0, 
+       inverse probability weighting (IPW), Si functions
+       from Ciais and Jouzel (1994), tauF is set by mean fall height,
+       and Deming regression for MWL with lambda = 64.
+v. 2.9 ignoring locations with rP=0, equal weighting, 
+       d2H0 and d18O0 set by f(T0), tauF set by mean fall height. 
+v. 2.8 two precipitation states, d2H0 and d18O0 set by f(T0), 
+       tauF set by mean fall height.
+v. 2.7.2 using Deming regression for MWL, and lambda = 64
+v. 2.7.1 using Deming regression for MWL, and lambda = 1
+v. 2.7 d2H0 and d18O0 set by f(T0), tauF set by mean fall height, 
+       and using all samples. 
+v. 2.6 fit for a mix of two precipitation states.
+v. 2.5 fit for tauC, but fix tauF for mean fall height, and
+       uses all samples.
+v. 2.4 fit for tauC, but fix tauF for mean fall height, and  
+       ignores samples with predicted rP = 0, equal weighting.
+v. 2.3 fit ignores samples with predicted rP = 0, equal weighting.
+v. 2.2 fits for d2H0 and d18O0 directly.
+v. 2.1 uses empirical relationships for d2H0 and d18O0 as function of T0
+v. 2.0 accounts for crosswind gradient in water isotopes
+v. 1.9 uses inverse probability weighting (IPW), and 
+       custom two-term Si functions, and fits for:
+       U, azimuth, T0, M, kappa, tau, d2H0, d18O0
+July 6, 2014: first working version with relatively slow isotope integration
+July 13, 2014: faster isotope integration, along with other improvements.
+Oct 5, 2014: fixed error with assigning correct roots for sqrt(m^2)
+Oct 28, 2014: turned off ylabel function for colorbars due to an
+               incompatibility with Matlab 2014b
+Nov 27, 2014: added eddy diffusion and time delay for isotopes

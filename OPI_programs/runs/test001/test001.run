@@ -1,0 +1,11 @@
+runPath = 'F:\code\OPI-Orographic-Precipitation-and-Isotopes\runs\test001';
+runTitle = 'Test Run 001';
+dataPath = 'F:\code\OPI-Orographic-Precipitation-and-Isotopes\data';
+topoFile = 'Himalaya_test.mat';
+sampleFile = 'samples_test.xlsx';
+contDivideFile = '';
+mapLimits = [77.5, 97.5, 20.0, 36.0];
+sectionLon0 = 87.0;
+sectionLat0 = 28.0;
+rTukey = 0.5;
+mu = 10;

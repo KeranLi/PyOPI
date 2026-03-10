@@ -1,0 +1,103 @@
+Program: opiMaps_TwoWinds
+Start time: 2026-03-09 22:41:09
+Run file path:
+F:\code\OPI-Orographic-Precipitation-and-Isotopes\runs\run033_Himalaya
+Run file name:
+run033.run
+Run title:
+run 33, Himalaya area, OPI 3.7, two wind, rTukey = 0.5, M<1, free fP, mu = 20
+Path name for data directory:
+F:\code\OPI-Orographic-Precipitation-and-Isotopes\data
+
+------------------ Topography File ------------------
+Topography file: Himalaya topography_April 2023_Gebco1kmMakima.mat
+Maximum elevation: 8588 m
+Grid size, nx and ny: 5748, 3560
+Longitude, minimum and maximum: 56.50000, 114.50000 degrees
+Latitude, minimum and maximum: 11.00000, 43.00000 degrees
+Grid spacing, dLon and dLat: 0.01009, 0.00899 degrees
+Grid spacing, dx and dy: 0.99, 1.00 km
+User-defined map limits, longitude: 77.50000, 97.50000
+User-defined map limits, latitude: 20.00000, 36.00000
+Continental-divide file: Asia_contDivideLonLat.mat
+Lon, lat for map origin (degrees): 87.46725, 27.58285
+Map origin is set to sample centroid.
+Size of cosine window as fraction of grid size: 0.5
+Coriolis frequency at map-origin latitude: 0.06753 mrad/s
+Lon, lat for section origin (degrees): 90.26876, 29.19308
+
+-------------------- Sample File --------------------
+Sample file: Himalaya Water Isotopes 8 March 2023.xlsx
+Number of all samples: 403
+Number of altered samples: 242
+Number of primary samples: 161
+Number of local primary samples: 0
+Number of catchment primary samples: 133
+Centroid for primary samples, longitude, latitude: 87.46725, 27.58285 degrees
+Minimum and maximum for longitude: 77.70000, 97.05430
+Minimum and maximum for latitude: 21.02090, 33.60000
+
+---------------------- Constants --------------------
+Characteristic distance for isotopic exchange: 540 m
+Standard-deviation ratio for data residuals: 28.30 (dimensionless)n
+----------------- Evaporation Option ----------------
+Evaporative recycling active for both precipitation states.
+
+---------------------- Solution ---------------------
+Precipitation State #1:
+Wind speed: 6.6 m/s
+Azimuth: 33.8 degrees
+Sea-level surface-air temperature: 293.5 K (20.4 癈)
+Mountain-height number: 0.340 (dimensionless)
+Horizontal eddy diffusivity: 233368 m^2/s
+Average residence time for cloud water: 1296 s
+d2H for base precipitation: -2.6 per mil
+d2H latitude gradient for base precipitation: -0.533 per mil/deg lat
+Residual precipitation after evaporation: 1.00 (dimensionless)
+Fraction for precipitation state #1: 0.52
+
+Precipitation State #2:
+Wind speed: 16.0 m/s
+Azimuth: 125.7 degrees
+Sea-level surface-air temperature: 294.0 K (20.9 癈)
+Mountain-height number: 0.693 (dimensionless)
+Horizontal eddy diffusivity: 722120 m^2/s
+Average residence time for cloud water: 2450 s
+d2H for base precipitation: -0.1 per mil
+d2H latitude gradient for base precipitation: -0.007 per mil/deg lat
+Residual precipitation after evaporation: 1.00 (dimensionless)
+
+---- Other Variables Related to Best-Fit Solution ---
+
+Precipitation State #1:
+Moist buoyancy frequency: 0.261 mrad/s
+d18O for base precipitation: -3.4 per mil
+d18O latitude gradient for base precipitation: -0.066 per mil/deg lat
+Average residence time for falling precipitation: 1504 s
+Water-vapor density at sea level: 17.87 g/m^3
+Scale height for water vapor: 3197 m
+Average velocity for falling precipitation: 2.1 m/s
+Total density at sea level: 1.20 g/m^3
+Scale height for total density: 9767 m
+Average lapse-rate ratio, gammaSat/gammaEnv: 0.91 (dimensionless)
+
+Precipitation State #2:
+Moist buoyancy frequency: 1.291 mrad/s
+d18O for base precipitation: -3.1 per mil
+d18O latitude gradient for base precipitation: -0.001 per mil/deg lat
+Average residence time for falling precipitation: 1537 s
+Water-vapor density at sea level: 18.39 g/m^3
+Scale height for water vapor: 3268 m
+Average velocity for falling precipitation: 2.1 m/s
+Total density at sea level: 1.20 g/m^3
+Scale height for total density: 9760 m
+Average lapse-rate ratio, gammaSat/gammaEnv: 0.91 (dimensionless)
+
+------------ Streamlines and Cloud Water -------------
+Vertical exaggeration for streamline figure: 20000 (dimensionless
+Starting elevation for streamlines: 2000 m
+Precipitation State 1:
+Mean height (above ground surface) for cloud water: 2867 m
+Precipitation State 2:
+Mean height (above ground surface) for cloud water: 3031 m
+Compute time: 36.16 minutes
