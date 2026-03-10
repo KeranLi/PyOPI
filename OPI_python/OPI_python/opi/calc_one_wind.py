@@ -140,12 +140,7 @@ def calc_one_wind(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,
         U, T, gamma_sat, h_s, h_r, d2h0, d18o0, d_d2h0_d_lat, d_d18o0_d_lat, is_fit
     )
     
-    d2h_grid = iso_result['d2h_grid']
-    d18o_grid = iso_result['d18o_grid']
-    evap_d2h_grid = iso_result['evap_d2h_grid']
-    u_evap_d2h_grid = iso_result['u_evap_d2h_grid']
-    evap_d18o_grid = iso_result['evap_d18o_grid']
-    u_evap_d18o_grid = iso_result['u_evap_d18o_grid']
+    d2h_grid, d18o_grid, evap_d2h_grid, u_evap_d2h_grid, evap_d18o_grid, u_evap_d18o_grid = iso_result
 
     # Clear temporary variables
     del h_wind, f_p_wind
