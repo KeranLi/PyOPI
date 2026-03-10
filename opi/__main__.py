@@ -1,387 +1,174 @@
 """
-OPI Command Line Interface
+Command-line interface for OPI Python package
 
 Usage:
-    python -m opi calc-one-wind [runfile]
-    python -m opi calc-two-winds [runfile]
-    python -m opi fit-one-wind [runfile]
-    python -m opi fit-two-winds [runfile]
-    python -m opi test
-    python -m opi info
+    python -m opi <command> [options]
+
+Commands:
+    run         Run simulation from .run file
+    fit-one     Fit one-wind model parameters
+    fit-two     Fit two-wind model parameters
+    maps-one    Generate maps for one-wind results
+    maps-two    Generate maps for two-wind results
+    version     Print version information
+
+Examples:
+    python -m opi run runs/run001/run001.run
+    python -m opi fit-one runs/run001/run001.run
+    python -m opi maps-one runs/run001/opiCalc_OneWind_Results.mat
 """
 
 import sys
 import argparse
-import numpy as np
-from datetime import datetime
+
+from . import __version__, print_version
 
 
 def main():
+    """Main entry point for CLI."""
     parser = argparse.ArgumentParser(
-        description='OPI (Orographic Precipitation and Isotopes) Command Line Tool',
+        description='OPI (Orographic Precipitation and Isotopes)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m opi calc-one-wind                    # Run with defaults
-  python -m opi calc-one-wind path/to/run.run    # Run with run file
-  python -m opi fit-one-wind path/to/run.run     # Parameter fitting
-  python -m opi test                             # Run tests
-  python -m opi info                             # Show package info
+  # Run a simulation
+  python -m opi run runs/run001/run001.run
+  
+  # Fit one-wind model
+  python -m opi fit-one runs/run001/run001.run --max-iter 5000
+  
+  # Generate maps
+  python -m opi maps-one runs/run001/opiCalc_OneWind_Results.mat
         """
     )
     
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    parser.add_argument('--version', action='version', version=f'OPI {__version__}')
     
-    # calc-one-wind command
-    calc_one = subparsers.add_parser('calc-one-wind', help='Single wind field calculation')
-    calc_one.add_argument('runfile', nargs='?', help='Path to run file')
-    calc_one.add_argument('-o', '--output', help='Output file path')
-    calc_one.add_argument('-v', '--verbose', action='store_true', default=True, help='Verbose output')
+    subparsers = parser.add_subparsers(dest='command', help='Command to execute')
     
-    # calc-two-winds command
-    calc_two = subparsers.add_parser('calc-two-winds', help='Two wind fields calculation')
-    calc_two.add_argument('runfile', nargs='?', help='Path to run file')
-    calc_two.add_argument('-o', '--output', help='Output file path')
-    calc_two.add_argument('-v', '--verbose', action='store_true', default=True)
+    # Run command
+    run_parser = subparsers.add_parser('run', help='Run simulation from .run file')
+    run_parser.add_argument('run_file', help='Path to .run configuration file')
+    run_parser.add_argument('-v', '--verbose', action='store_true', default=True,
+                          help='Print detailed progress (default: True)')
+    run_parser.add_argument('-q', '--quiet', action='store_true',
+                          help='Suppress console output')
     
-    # fit-one-wind command
-    fit_one = subparsers.add_parser('fit-one-wind', help='Single wind field parameter fitting')
-    fit_one.add_argument('runfile', nargs='?', help='Path to run file')
-    fit_one.add_argument('-i', '--iter', type=int, default=1000, help='Max iterations')
-    fit_one.add_argument('-o', '--output', help='Output file path')
+    # Fit-one command
+    fit_one_parser = subparsers.add_parser('fit-one', help='Fit one-wind model parameters')
+    fit_one_parser.add_argument('run_file', help='Path to .run configuration file')
+    fit_one_parser.add_argument('--max-iter', type=int, default=10000,
+                               help='Maximum optimization iterations (default: 10000)')
+    fit_one_parser.add_argument('--parallel', action='store_true',
+                               help='Use parallel processing')
     
-    # fit-two-winds command
-    fit_two = subparsers.add_parser('fit-two-winds', help='Two wind fields parameter fitting')
-    fit_two.add_argument('runfile', nargs='?', help='Path to run file')
-    fit_two.add_argument('-i', '--iter', type=int, default=1000, help='Max iterations')
-    fit_two.add_argument('-o', '--output', help='Output file path')
+    # Fit-two command
+    fit_two_parser = subparsers.add_parser('fit-two', help='Fit two-wind model parameters')
+    fit_two_parser.add_argument('run_file', help='Path to .run configuration file')
+    fit_two_parser.add_argument('--max-iter', type=int, default=10000,
+                               help='Maximum optimization iterations (default: 10000)')
+    fit_two_parser.add_argument('--parallel', action='store_true',
+                               help='Use parallel processing')
     
-    # test command
-    test_cmd = subparsers.add_parser('test', help='Run tests')
-    test_cmd.add_argument('-v', '--verbose', action='store_true', help='Verbose test output')
+    # Maps-one command
+    maps_one_parser = subparsers.add_parser('maps-one', help='Generate maps for one-wind results')
+    maps_one_parser.add_argument('results_file', help='Path to opiCalc_OneWind_Results.mat')
+    maps_one_parser.add_argument('-o', '--output-dir', help='Output directory for figures')
+    maps_one_parser.add_argument('--show', action='store_true',
+                                help='Display plots interactively')
     
-    # info command
-    info_cmd = subparsers.add_parser('info', help='Show package information')
+    # Maps-two command
+    maps_two_parser = subparsers.add_parser('maps-two', help='Generate maps for two-wind results')
+    maps_two_parser.add_argument('results_file', help='Path to opiCalc_TwoWinds_Results.mat')
+    maps_two_parser.add_argument('-o', '--output-dir', help='Output directory for figures')
+    maps_two_parser.add_argument('--show', action='store_true',
+                                help='Display plots interactively')
+    
+    # Version command
+    subparsers.add_parser('version', help='Print version information')
     
     args = parser.parse_args()
     
     if args.command is None:
         parser.print_help()
-        return
+        sys.exit(1)
     
-    # Execute command
-    if args.command == 'calc-one-wind':
-        cmd_calc_one_wind(args)
-    elif args.command == 'calc-two-winds':
-        cmd_calc_two_winds(args)
-    elif args.command == 'fit-one-wind':
-        cmd_fit_one_wind(args)
-    elif args.command == 'fit-two-winds':
-        cmd_fit_two_winds(args)
-    elif args.command == 'test':
-        cmd_test(args)
-    elif args.command == 'info':
-        cmd_info()
-
-
-def cmd_calc_one_wind(args):
-    """Run single wind field calculation."""
-    from .app.calc_one_wind import opi_calc_one_wind
+    if args.command == 'version':
+        print_version()
+        sys.exit(0)
     
-    print("=" * 60)
-    print("OPI Single Wind Field Calculation")
-    print("=" * 60)
-    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    result = opi_calc_one_wind(
-        run_file_path=args.runfile,
-        verbose=args.verbose
-    )
-    
-    if result['results']:
-        print("\n" + "=" * 60)
-        print("RESULTS SUMMARY")
-        print("=" * 60)
-        print("Solution Parameters:")
-        for name, val in result['solution_params'].items():
-            print(f"  {name}: {val}")
+    elif args.command == 'run':
+        from .run_opi_simulation import run_simulation
+        verbose = not args.quiet and args.verbose
+        result = run_simulation(args.run_file, verbose=verbose)
         
-        print("\nDerived Parameters:")
-        for name, val in result['derived_params'].items():
-            if isinstance(val, float):
-                print(f"  {name}: {val:.6f}")
-            else:
-                print(f"  {name}: {val}")
-        
-        # Save if output specified
-        if args.output:
-            save_results(result, args.output)
-            print(f"\nResults saved to: {args.output}")
-    else:
-        print("\nCalculation failed or no results produced.")
-
-
-def cmd_calc_two_winds(args):
-    """Run two wind fields calculation."""
-    from .app.calc_two_winds import opi_calc_two_winds
+        if result['success']:
+            print(f"\nSimulation completed successfully!")
+            print(f"Results: {result['results_path']}")
+            sys.exit(0)
+        else:
+            print(f"\nSimulation failed: {result.get('error', 'Unknown error')}")
+            sys.exit(1)
     
-    print("=" * 60)
-    print("OPI Two Wind Fields Calculation")
-    print("=" * 60)
-    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    result = opi_calc_two_winds(
-        run_file_path=args.runfile,
-        verbose=args.verbose
-    )
-    
-    if result.get('precipitation') is not None:
-        print("\n" + "=" * 60)
-        print("RESULTS SUMMARY")
-        print("=" * 60)
-        
-        print("\nWind Field 1:")
-        print(f"  U: {result['solution_params']['wind1_U']:.2f} m/s")
-        print(f"  Azimuth: {result['solution_params']['wind1_az']:.1f} deg")
-        
-        print("\nWind Field 2:")
-        print(f"  U: {result['solution_params']['wind2_U']:.2f} m/s")
-        print(f"  Azimuth: {result['solution_params']['wind2_az']:.1f} deg")
-        print(f"  Fraction: {result['solution_params']['frac2']:.2f}")
-        
-        print("\nDerived Parameters:")
-        for name, val in result['derived_params'].items():
-            if isinstance(val, float):
-                print(f"  {name}: {val:.6f}")
-        
-        if args.output:
-            save_results(result, args.output)
-            print(f"\nResults saved to: {args.output}")
-    else:
-        print("\nCalculation failed.")
-
-
-def cmd_fit_one_wind(args):
-    """Run single wind field parameter fitting."""
-    from .app.fitting import opi_fit_one_wind
-    
-    print("=" * 60)
-    print("OPI Single Wind Field Parameter Fitting")
-    print("=" * 60)
-    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    result = opi_fit_one_wind(
-        run_file_path=args.runfile,
-        verbose=True,
-        max_iterations=args.iter
-    )
-    
-    print("\n" + "=" * 60)
-    print("FIT RESULTS")
-    print("=" * 60)
-    print(f"Convergence: {result['convergence']}")
-    print(f"Final misfit: {result['misfit']:.6f}")
-    print(f"Iterations: {result['iterations']}")
-    
-    if result['solution_params']:
-        print("\nFitted Parameters:")
-        for name, val in result['solution_params'].items():
-            print(f"  {name}: {val:.6f}")
-        
-        if args.output:
-            save_results(result, args.output)
-            print(f"\nResults saved to: {args.output}")
-
-
-def cmd_fit_two_winds(args):
-    """Run two wind fields parameter fitting."""
-    from .app.fitting import opi_fit_two_winds
-    
-    print("=" * 60)
-    print("OPI Two Wind Fields Parameter Fitting")
-    print("=" * 60)
-    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    result = opi_fit_two_winds(
-        run_file_path=args.runfile,
-        verbose=True,
-        max_iterations=args.iter
-    )
-    
-    print("\n" + "=" * 60)
-    print("FIT RESULTS")
-    print("=" * 60)
-    print(f"Convergence: {result['convergence']}")
-    print(f"Final misfit: {result['misfit']:.6f}")
-    print(f"Iterations: {result['iterations']}")
-    
-    if result['solution_params']:
-        print("\nWind Field 1:")
-        print(f"  U: {result['solution_params']['wind1_U']:.2f} m/s")
-        print(f"  Azimuth: {result['solution_params']['wind1_az']:.1f} deg")
-        
-        print("\nWind Field 2:")
-        print(f"  U: {result['solution_params']['wind2_U']:.2f} m/s")
-        print(f"  Azimuth: {result['solution_params']['wind2_az']:.1f} deg")
-        print(f"  Fraction: {result['solution_params']['frac2']:.2f}")
-        
-        if args.output:
-            save_results(result, args.output)
-            print(f"\nResults saved to: {args.output}")
-
-
-def cmd_test(args):
-    """Run tests."""
-    print("=" * 60)
-    print("OPI Test Suite")
-    print("=" * 60)
-    
-    tests_passed = 0
-    tests_failed = 0
-    
-    # Test 1: Import all modules
-    print("\n[Test 1] Import all modules...")
-    try:
-        from opi import (
-            fourier_solution, precipitation_grid, isotope_grid,
-            fractionation_hydrogen, fractionation_oxygen,
-            opi_calc_one_wind, opi_calc_two_winds,
-            opi_fit_one_wind, opi_fit_two_winds
+    elif args.command == 'fit-one':
+        from .opi_fit_one_wind import opi_fit_one_wind
+        result = opi_fit_one_wind(
+            args.run_file,
+            verbose=True,
+            max_iterations=args.max_iter,
+            parallel=args.parallel
         )
-        print("  PASSED")
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        tests_failed += 1
-    
-    # Test 2: Single wind calculation
-    print("\n[Test 2] Single wind calculation...")
-    try:
-        from opi import opi_calc_one_wind
-        result = opi_calc_one_wind(verbose=False)
-        assert result['results'] is not None
-        print("  PASSED")
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        tests_failed += 1
-    
-    # Test 3: Two wind calculation
-    print("\n[Test 3] Two wind calculation...")
-    try:
-        from opi import opi_calc_two_winds
-        result = opi_calc_two_winds(verbose=False)
-        assert result.get('precipitation') is not None
-        print("  PASSED")
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        tests_failed += 1
-    
-    # Test 4: CRS3 optimization
-    print("\n[Test 4] CRS3 optimization...")
-    try:
-        from opi import fmin_crs3
         
-        def objective(x):
-            return sum((xi - 1.0)**2 for xi in x)
+        if result['success']:
+            print(f"\nFitting completed successfully!")
+            print(f"Final misfit: {result['misfit']:.6f}")
+            print(f"Results: {result['results_path']}")
+            sys.exit(0)
+        else:
+            print(f"\nFitting failed: {result.get('message', 'Unknown error')}")
+            sys.exit(1)
+    
+    elif args.command == 'fit-two':
+        from .opi_fit_two_winds import opi_fit_two_winds
+        result = opi_fit_two_winds(
+            args.run_file,
+            verbose=True,
+            max_iterations=args.max_iter,
+            parallel=args.parallel
+        )
         
-        result = fmin_crs3(objective, [(-2, 2), (-2, 2)], max_iter=100)
-        assert result.success
-        print("  PASSED")
-        tests_passed += 1
-    except Exception as e:
-        print(f"  FAILED: {e}")
-        tests_failed += 1
+        if result['success']:
+            print(f"\nFitting completed successfully!")
+            print(f"Final misfit: {result['misfit']:.6f}")
+            print(f"Results: {result['results_path']}")
+            sys.exit(0)
+        else:
+            print(f"\nFitting failed: {result.get('message', 'Unknown error')}")
+            sys.exit(1)
     
-    # Summary
-    print("\n" + "=" * 60)
-    print(f"Tests: {tests_passed} passed, {tests_failed} failed")
-    print("=" * 60)
-
-
-def cmd_info():
-    """Show package information."""
-    print("=" * 60)
-    print("OPI (Orographic Precipitation and Isotopes)")
-    print("=" * 60)
-    print("\nPackage Information:")
-    print("  Version: 1.0.0")
-    print("  Python Port: AI Assistant")
-    print("  Original Author: Mark Brandon (Yale University)")
-    print("  MATLAB Compatibility: 100% (all 34 functions)")
+    elif args.command == 'maps-one':
+        from .opi_maps_one_wind import opi_maps_one_wind
+        files = opi_maps_one_wind(
+            results_file=args.results_file,
+            output_dir=args.output_dir,
+            save_plots=True,
+            show_plots=args.show,
+            verbose=True
+        )
+        print(f"\nGenerated {len(files)} figure(s)")
+        sys.exit(0)
     
-    print("\nImplemented Modules:")
-    print("  [physics] (8 modules)")
-    print("    - thermodynamics, fractionation, fourier")
-    print("    - precipitation, isotope, lifting")
-    print("    - cloud_water, velocity")
-    print("  [io] (5 modules)")
-    print("    - coordinates, data_loader, matlab_compat")
-    print("    - run_file, solutions_file")
-    print("  [optimization] (2 modules)")
-    print("    - crs3, wind_path")
-    print("  [catchment] (2 modules)")
-    print("    - nodes, indices")
-    print("  [app] (4 modules)")
-    print("    - calc_one_wind, calc_two_winds")
-    print("    - fitting, plotting")
-    print("  [tools] (2 modules)")
-    print("    - synthetic_topography, climate_records")
-    print("  [viz] (5 modules)")
-    print("    - maps, plots, advanced, colormaps, export")
-    print("  [infrastructure] (1 module)")
-    print("    - paths")
-    
-    print("\nKey Features:")
-    print("  - Complete atmospheric physics")
-    print("  - Velocity perturbations & streamlines")
-    print("  - Paleoclimate record processing")
-    print("  - MATLAB run file parsing")
-    print("  - Solutions file I/O")
-    print("  - Haxby colormap & cmapscale")
-    print("  - Persistent path management")
-    
-    print("\nAvailable Commands:")
-    print("  python -m opi calc-one-wind [runfile]")
-    print("  python -m opi calc-two-winds [runfile]")
-    print("  python -m opi fit-one-wind [runfile]")
-    print("  python -m opi fit-two-winds [runfile]")
-    print("  python -m opi test")
-    print("  python -m opi info")
-    
-    print("\nPython API Examples:")
-    print("  import opi")
-    print("  result = opi.opi_calc_one_wind('run.run')")
-    print("  run_data = opi.parse_run_file('run.run')")
-    print("  T0, d2H0 = opi.calculate_climate_records(...)")
-    print("  cmap = opi.haxby()")
-    
-    print("\nDocumentation:")
-    print("  README.md - Overview and quick start")
-    print("  PROJECT_STRUCTURE.md - Detailed structure")
-    print("  docs/MATLAB_PYTHON_COMPARISON.md - Migration guide")
-    print("=" * 60)
-
-
-def save_results(result, filepath):
-    """Save results to file."""
-    import json
-    
-    # Convert numpy arrays to lists for JSON serialization
-    def convert(obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        elif isinstance(obj, dict):
-            return {k: convert(v) for k, v in obj.items()}
-        elif isinstance(obj, (np.integer, np.floating)):
-            return float(obj)
-        return obj
-    
-    result_serializable = convert(result)
-    
-    with open(filepath, 'w') as f:
-        json.dump(result_serializable, f, indent=2)
+    elif args.command == 'maps-two':
+        from .opi_maps_two_winds import opi_maps_two_winds
+        files = opi_maps_two_winds(
+            results_file=args.results_file,
+            output_dir=args.output_dir,
+            save_plots=True,
+            show_plots=args.show,
+            verbose=True
+        )
+        print(f"\nGenerated {len(files)} figure(s)")
+        sys.exit(0)
 
 
 if __name__ == '__main__':
