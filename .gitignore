@@ -1,3 +1,7 @@
 /opi_orographic_precipitation_isotopes.egg-info"__pycache__/" 
 "*.pyc" 
 /OPI_matlab/runs/figs
+"__pycache__/" 
+"*.pyc" 
+"*.pyo" 
+"*.pyd" 
