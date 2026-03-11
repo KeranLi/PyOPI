@@ -105,12 +105,12 @@ def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,
         z_bar_1, T_1, gamma_env_1, gamma_sat_1, gamma_ratio_1, rho_s0_1, h_s_1, f_p0_1
     )
     
-    s = precip_result_1['s']
-    t = precip_result_1['t']
-    s_xy = precip_result_1['Sxy']
-    t_xy = precip_result_1['Txy']
+    s_1 = precip_result_1['s']
+    t_1 = precip_result_1['t']
+    s_xy_1 = precip_result_1['Sxy']
+    t_xy_1 = precip_result_1['Txy']
     p_grid_1 = precip_result_1['p_grid'] * fraction  # Scale by fraction
-    h_wind = precip_result_1['h_wind']
+    h_wind_1 = precip_result_1['h_wind']
     f_m_wind_1 = precip_result_1['f_m_wind']
     r_h_wind_1 = precip_result_1['r_h_wind']
     f_p_wind_1 = precip_result_1['f_p_wind']
@@ -120,29 +120,29 @@ def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,
     
     # Calculate isotope grids
     iso_result_1 = isotope_grid(
-        s, t, s_xy, t_xy, lat, lat0, h_wind, f_m_wind_1, r_h_wind_1, f_p_wind_1,
+        s_1, t_1, s_xy_1, t_xy_1, lat, lat0, h_wind_1, f_m_wind_1, r_h_wind_1, f_p_wind_1,
         z223_wind_1, z258_wind_1, tau_f_1,
         U_1, T_1, gamma_sat_1, h_s_1, h_r, d2h0_1, d18o0_1, 
         d_d2h0_d_lat_1, d_d18o0_d_lat_1, is_fit
     )
     
-    d2h_grid_1 = iso_result_1['d2h_grid']
-    d18o_grid_1 = iso_result_1['d18o_grid']
+    d2h_grid_1 = iso_result_1[0]
+    d18o_grid_1 = iso_result_1[1]
     
     del f_p_wind_1
     
     # Interpolate f_m_wind back to geographic grid
-    interpolator = RegularGridInterpolator((s, t), f_m_wind_1, method='linear', 
+    interpolator = RegularGridInterpolator((s_1, t_1), f_m_wind_1, method='linear', 
                                            bounds_error=False, fill_value=None)
-    f_m_grid_1 = np.reshape(interpolator((s_xy.flatten(), t_xy.flatten())), s_xy.shape)
+    f_m_grid_1 = np.reshape(interpolator((s_xy_1.flatten(), t_xy_1.flatten())), s_xy_1.shape)
     del f_m_wind_1
     
     # Calculate r_h_grid
     if not is_fit:
         if r_h_wind_1.size > 1:
-            interpolator = RegularGridInterpolator((s, t), r_h_wind_1, method='linear',
+            interpolator = RegularGridInterpolator((s_1, t_1), r_h_wind_1, method='linear',
                                                    bounds_error=False, fill_value=None)
-            r_h_grid_1 = np.reshape(interpolator((s_xy.flatten(), t_xy.flatten())), s_xy.shape)
+            r_h_grid_1 = np.reshape(interpolator((s_xy_1.flatten(), t_xy_1.flatten())), s_xy_1.shape)
             del r_h_wind_1
         else:
             r_h_grid_1 = np.ones_like(h_grid)
@@ -183,6 +183,10 @@ def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,
         z_bar_2, T_2, gamma_env_2, gamma_sat_2, gamma_ratio_2, rho_s0_2, h_s_2, f_p0_2
     )
     
+    s_2 = precip_result_2['s']
+    t_2 = precip_result_2['t']
+    s_xy_2 = precip_result_2['Sxy']
+    t_xy_2 = precip_result_2['Txy']
     p_grid_2 = precip_result_2['p_grid'] * (1 - fraction)  # Scale by (1 - fraction)
     h_wind_2 = precip_result_2['h_wind']
     f_m_wind_2 = precip_result_2['f_m_wind']
@@ -194,29 +198,29 @@ def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,
     
     # Calculate isotope grids
     iso_result_2 = isotope_grid(
-        s, t, s_xy, t_xy, lat, lat0, h_wind_2, f_m_wind_2, r_h_wind_2, f_p_wind_2,
+        s_2, t_2, s_xy_2, t_xy_2, lat, lat0, h_wind_2, f_m_wind_2, r_h_wind_2, f_p_wind_2,
         z223_wind_2, z258_wind_2, tau_f_2,
         U_2, T_2, gamma_sat_2, h_s_2, h_r, d2h0_2, d18o0_2,
         d_d2h0_d_lat_2, d_d18o0_d_lat_2, is_fit
     )
     
-    d2h_grid_2 = iso_result_2['d2h_grid']
-    d18o_grid_2 = iso_result_2['d18o_grid']
+    d2h_grid_2 = iso_result_2[0]
+    d18o_grid_2 = iso_result_2[1]
     
     del f_p_wind_2
     
     # Interpolate f_m_wind back to geographic grid
-    interpolator = RegularGridInterpolator((s, t), f_m_wind_2, method='linear',
+    interpolator = RegularGridInterpolator((s_2, t_2), f_m_wind_2, method='linear',
                                            bounds_error=False, fill_value=None)
-    f_m_grid_2 = np.reshape(interpolator((s_xy.flatten(), t_xy.flatten())), s_xy.shape)
+    f_m_grid_2 = np.reshape(interpolator((t_xy_2.flatten(), s_xy_2.flatten())), s_xy_2.shape)
     del f_m_wind_2
     
     # Calculate r_h_grid
     if not is_fit:
         if r_h_wind_2.size > 1:
-            interpolator = RegularGridInterpolator((s, t), r_h_wind_2, method='linear',
+            interpolator = RegularGridInterpolator((s_2, t_2), r_h_wind_2, method='linear',
                                                    bounds_error=False, fill_value=None)
-            r_h_grid_2 = np.reshape(interpolator((s_xy.flatten(), t_xy.flatten())), s_xy.shape)
+            r_h_grid_2 = np.reshape(interpolator((t_xy_2.flatten(), s_xy_2.flatten())), s_xy_2.shape)
             del r_h_wind_2
         else:
             r_h_grid_2 = np.ones_like(h_grid)
