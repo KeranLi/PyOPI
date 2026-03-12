@@ -1,285 +1,139 @@
 """
-OPI (Orographic Precipitation and Isotopes) - Python Package v2.0.0
-====================================================================
+OPI (Orographic Precipitation and Isotopes) - Python Package
 
-A Python implementation of the OPI model for analyzing precipitation 
-and water isotope fractionation associated with steady atmospheric 
-flow over arbitrary three-dimensional topography.
+This package provides computational tools for the analysis of precipitation 
+and isotope fractionation associated with steady atmospheric flow over 
+an arbitrary three-dimensional topography.
 
-Package Structure
------------------
-**opi.core** : Core computational functions
-    Atmospheric base state, Fourier solutions, precipitation and 
-    isotope calculations. These are the fundamental building blocks.
+This Python implementation replicates the functionality of the MATLAB OPI 3.7 model
+developed by Mark Brandon at Yale University.
 
-**opi.models** : High-level model interfaces  
-    OneWindModel, TwoWindModel - easy-to-use classes for running
-    simulations and fitting parameters.
+Main Functions:
+---------------
+- opi_calc_one_wind : Calculate results for one-wind model
+- opi_calc_two_winds : Calculate results for two-wind model
+- opi_fit_one_wind : Fit parameters for one-wind model
+- opi_fit_two_winds : Fit parameters for two-wind model
+- opi_maps_one_wind : Generate maps for one-wind results
+- opi_maps_two_winds : Generate maps for two-wind results
+- run_simulation : Main entry point for running simulations from .run files
 
-**opi.solvers** : Optimization algorithms
-    CRS3Optimizer - global optimization for parameter fitting.
+Example Usage:
+--------------
+    # Run a simulation from a .run file
+    from opi import run_simulation
+    results = run_simulation('runs/run001/run001.run')
+    
+    # Or use the module directly
+    from opi import opi_calc_one_wind
+    result = opi_calc_one_wind('runs/run001/run001.run')
+    
+    # Generate maps from results
+    from opi import opi_maps_one_wind
+    opi_maps_one_wind('runs/run001/opiCalc_OneWind_Results.mat')
 
-**opi.io** : Input/output utilities
-    Load topography (ASCII, NetCDF, GeoTIFF), sample data, and
-    save results in multiple formats.
-
-**opi.utils** : Utility functions
-    Statistics, validation, basic plotting.
-
-**opi.visualization** : Advanced visualization
-    Maps, cross-sections, analysis plots with professional quality.
-
-**opi.parallel** : Parallel processing
-    Parameter sweeps, ensemble runs, Monte Carlo simulations.
-
-Quick Start
------------
->>> from opi import OneWindModel, OneWindParameters
->>> 
->>> # Define topography
->>> topography = {
-...     'x': x_coords,
-...     'y': y_coords, 
-...     'h_grid': elevation_grid
-... }
->>>
->>> # Create model and parameters
->>> model = OneWindModel(topography)
->>> params = OneWindParameters(
-...     U=10.0,           # Wind speed (m/s)
-...     azimuth=270.0,    # Wind direction (degrees from North)
-...     T0=288.0,         # Sea-level temperature (K)
-...     M=0.8,            # Mountain-height number
-...     kappa=0.0,        # Eddy diffusivity (m²/s)
-...     tau_c=1000.0,     # Cloud water residence time (s)
-...     d2H0=-0.100,      # Base d2H (fraction = -100‰)
-...     d_d2H0_d_lat=0.0, # d2H latitudinal gradient
-...     f_p0=1.0          # No evaporative recycling
-... )
->>>
->>> # Run simulation
->>> result = model.run(params)
->>>
->>> # Access results
->>> print(f"Mean precipitation: {result.p_grid.mean():.4f} kg/m²/s")
->>> print(f"d2H range: {result.d2H_grid.min()*1000:.1f}‰ to {result.d2H_grid.max()*1000:.1f}‰")
-
-Advanced Features
------------------
-**Parallel Processing**:
->>> from opi.parallel import ParameterSweep
->>> sweep = ParameterSweep(model, n_jobs=4)
->>> results = sweep.run_one_factor('U', [5, 10, 15, 20], base_params)
-
-**Visualization**:
->>> from opi.visualization import create_summary_figure
->>> fig = create_summary_figure(topography, result)
-
-**I/O Operations**:
->>> from opi.io import load_topography, save_results
->>> topo = load_topography('dem.tif')  # Auto-detects format
->>> save_results(result, 'output.nc', format='nc')
-
-References
-----------
-Brandon et al. (in prep) - A Linear Theory Orographic Precipitation
-    Model for Predicting the Isotopic Composition of Precipitation
-
-Smith and Barstad (2004) - A linear theory of orographic precipitation
-    J. Atmos. Sci., 61, 1377-1391.
-
-Durran and Klemp (1982) - On the effects of moisture on the 
-    Brunt-Väisälä frequency. J. Atmos. Sci., 39, 2152-2158.
+For more information, see README.md and READMEMAT.md
 """
 
-# Package metadata
-__version__ = "2.0.0"
-__author__ = "Mark Brandon, Yale University (MATLAB); AI Assistant (Python)"
-__license__ = "MIT"
-__docformat__ = "numpy"
+__version__ = "1.0.0"
+__author__ = "Python implementation based on MATLAB code by Mark Brandon (Yale University)"
 
-# Import core functions for convenient access
-from .core import (
-    # Base state
-    base_state,
-    saturated_vapor_pressure,
-    
-    # Fourier solution
-    fourier_solution,
-    wind_grid,
-    
-    # Precipitation
-    precipitation_grid,
-    isotherm,
-    
-    # Isotopes
-    isotope_grid,
-    fractionation_hydrogen,
-    fractionation_oxygen,
-    
-    # Coordinates
-    lonlat2xy,
-    xy2lonlat,
-    wind_path,
-    
-    # Catchment
-    catchment_nodes,
-    catchment_indices,
-    lifting,
-)
+# Import main simulation functions
+from .run_opi_simulation import run_simulation
 
-# Import high-level models
-from .models import (
-    OneWindModel,
-    TwoWindModel,
-    OneWindParameters,
-    TwoWindsParameters,
-    OneWindResult,
-    TwoWindsResult,
-    run_one_wind,
-    run_two_winds,
-)
+# Import calculation functions
+from .opi_calc_one_wind import opi_calc_one_wind
+from .opi_calc_two_winds import opi_calc_two_winds
+from .calc_one_wind import calc_one_wind
+from .calc_two_winds import calc_two_winds
 
-# Import solvers
-from .solvers import (
-    CRS3Optimizer,
-    fmin_crs3,
-)
+# Import fitting functions
+from .opi_fit_one_wind import opi_fit_one_wind
+from .opi_fit_two_winds import opi_fit_two_winds
 
-# Import utilities
-from .utils import (
-    estimate_mwl,
-    calculate_residuals,
-    chi_squared_test,
-    plot_topography,
-    plot_precipitation,
-    plot_isotopes,
-    validate_topography,
-    validate_parameters,
-)
+# Import visualization functions
+from .opi_maps_one_wind import opi_maps_one_wind
+from .opi_maps_two_winds import opi_maps_two_winds
 
-# Import visualization (if available)
-try:
-    from .visualization import (
-        plot_topography_contour,
-        plot_precipitation_contour,
-        plot_isotope_maps,
-        plot_cross_section,
-        plot_meteoric_water_line,
-        plot_residuals,
-        create_summary_figure,
-    )
-    HAS_VISUALIZATION = True
-except ImportError:
-    HAS_VISUALIZATION = False
+# Import core utilities
+from .base_state import base_state
+from .saturated_vapor_pressure import saturated_vapor_pressure
+from .coordinates import lonlat2xy, xy2lonlat
+from .wind_path import wind_path
+from .catchment_nodes import catchment_nodes
+from .catchment_indices import catchment_indices
+from .precipitation_grid import precipitation_grid
+from .isotope_grid import isotope_grid
+from .fractionation_hydrogen import fractionation_hydrogen
+from .fractionation_oxygen import fractionation_oxygen
 
-# Import parallel processing (if available)
-try:
-    from .parallel import (
-        ParameterSweep,
-        EnsembleRunner,
-        MonteCarloSimulator,
-    )
-    HAS_PARALLEL = True
-except ImportError:
-    HAS_PARALLEL = False
+# Import I/O utilities
+from .io.run_file import parse_run_file, write_run_file
+from .io.data_loader import get_input, grid_read
 
-# Import IO functions
-try:
-    from .io import (
-        load_topography,
-        load_samples_csv,
-        save_results,
-        load_results,
-        parse_run_file,
-    )
-    HAS_IO = True
-except ImportError as e:
-    HAS_IO = False
+# Import optimization
+from .fmin_crs3 import fmin_crs3, CRS3Optimizer
 
 # Import constants
 from .constants import (
-    G, CPD, CPV, RD, RV, L, GAMMA_D, P0, EPSILON,
+    G, CPD, CPV, RD, RV, L, P0, EPSILON, GAMMA_D,
     RADIUS_EARTH, M_PER_DEGREE, OMEGA,
     TC2K, HR, SD_RES_RATIO
 )
 
-# Build __all__ based on available features
+# Define public API
 __all__ = [
-    # Metadata
-    '__version__',
+    # Main entry point
+    'run_simulation',
     
-    # Core functions
+    # High-level calculation functions
+    'opi_calc_one_wind',
+    'opi_calc_two_winds',
+    
+    # Core calculation functions
+    'calc_one_wind',
+    'calc_two_winds',
+    
+    # Fitting functions
+    'opi_fit_one_wind',
+    'opi_fit_two_winds',
+    
+    # Visualization functions
+    'opi_maps_one_wind',
+    'opi_maps_two_winds',
+    
+    # Core utilities
     'base_state',
     'saturated_vapor_pressure',
-    'fourier_solution',
-    'wind_grid',
-    'precipitation_grid',
-    'isotherm',
-    'isotope_grid',
-    'fractionation_hydrogen',
-    'fractionation_oxygen',
     'lonlat2xy',
     'xy2lonlat',
     'wind_path',
     'catchment_nodes',
     'catchment_indices',
-    'lifting',
+    'precipitation_grid',
+    'isotope_grid',
+    'fractionation_hydrogen',
+    'fractionation_oxygen',
     
-    # Models
-    'OneWindModel',
-    'TwoWindModel',
-    'OneWindParameters',
-    'TwoWindsParameters',
-    'OneWindResult',
-    'TwoWindsResult',
-    'run_one_wind',
-    'run_two_winds',
+    # I/O utilities
+    'parse_run_file',
+    'write_run_file',
+    'get_input',
+    'grid_read',
     
-    # Solvers
-    'CRS3Optimizer',
+    # Optimization
     'fmin_crs3',
-    
-    # Utilities
-    'estimate_mwl',
-    'calculate_residuals',
-    'chi_squared_test',
-    'plot_topography',
-    'plot_precipitation',
-    'plot_isotopes',
-    'validate_topography',
-    'validate_parameters',
+    'CRS3Optimizer',
     
     # Constants
-    'G', 'CPD', 'CPV', 'RD', 'RV', 'L', 'GAMMA_D', 'P0', 'EPSILON',
+    'G', 'CPD', 'CPV', 'RD', 'RV', 'L', 'P0', 'EPSILON', 'GAMMA_D',
     'RADIUS_EARTH', 'M_PER_DEGREE', 'OMEGA',
-    'TC2K', 'HR', 'SD_RES_RATIO',
+    'TC2K', 'HR', 'SD_RES_RATIO'
 ]
 
-# Add optional features to __all__
-if HAS_VISUALIZATION:
-    __all__.extend([
-        'plot_topography_contour',
-        'plot_precipitation_contour',
-        'plot_isotope_maps',
-        'plot_cross_section',
-        'plot_meteoric_water_line',
-        'plot_residuals',
-        'create_summary_figure',
-    ])
 
-if HAS_PARALLEL:
-    __all__.extend([
-        'ParameterSweep',
-        'EnsembleRunner',
-        'MonteCarloSimulator',
-    ])
-
-if HAS_IO:
-    __all__.extend([
-        'load_topography',
-        'load_samples_csv',
-        'save_results',
-        'load_results',
-        'parse_run_file',
-    ])
+def print_version():
+    """Print version information."""
+    print(f"OPI (Orographic Precipitation and Isotopes) Python Package")
+    print(f"Version: {__version__}")
+    print(f"Based on MATLAB OPI 3.7 by Mark Brandon, Yale University")
