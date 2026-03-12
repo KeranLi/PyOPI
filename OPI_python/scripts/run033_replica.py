@@ -20,12 +20,15 @@ opi_root = script_dir.parent
 sys.path.insert(0, str(opi_root))
 
 # Import OPI 模块
-from opi.base_state import base_state
-from opi.precipitation_grid import precipitation_grid
-from opi.isotope_grid import isotope_grid
-from opi.coordinates import lonlat2xy
-from opi.catchment_nodes import catchment_nodes
-from opi.utils import wind_components
+from opi import (
+    base_state,
+    precipitation_grid,
+    isotope_grid,
+    lonlat2xy,
+    catchment_nodes,
+    grid_read,
+    get_input,
+)
 
 
 def find_data_file(filename, search_paths):
@@ -62,77 +65,6 @@ def parse_run_file(run_file_path):
     return config
 
 
-def tukey_window(n, r_tukey):
-    """创建 Tukey 窗口（余弦渐变窗）"""
-    window = np.ones(n)
-    if r_tukey <= 0:
-        return window
-    taper_width = int(np.floor(r_tukey / 2 * n))
-    if taper_width < 1:
-        return window
-    taper = 0.5 * (1 - np.cos(np.pi * np.arange(taper_width) / taper_width))
-    window[:taper_width] = taper
-    window[-taper_width:] = taper[::-1]
-    return window
-
-
-def grid_read(mat_file_path):
-    """读取 MATLAB .mat 文件（支持 HDF5 v7.3 格式）"""
-    print(f"Reading topography: {mat_file_path}")
-    
-    # 尝试普通 MATLAB 格式
-    try:
-        mat_data = loadmat(mat_file_path)
-        is_hdf5 = False
-    except NotImplementedError:
-        is_hdf5 = True
-    
-    h_grid = None
-    x = None
-    y = None
-    lon = None
-    lat = None
-    
-    if is_hdf5:
-        # HDF5 v7.3 格式
-        with h5py.File(mat_file_path, 'r') as f:
-            for key in f.keys():
-                value = np.array(f[key])
-                if value.ndim == 2 and h_grid is None:
-                    if value.shape[0] > 10 and value.shape[1] > 10:
-                        h_grid = value.T if value.shape[0] < value.shape[1] else value
-                        print(f"  Found grid '{key}': {h_grid.shape}")
-                elif value.ndim == 1:
-                    if lon is None and len(value) > 10:
-                        lon = value
-                        print(f"  Found lon '{key}': {lon.shape}")
-                    elif lat is None and len(value) > 10:
-                        lat = value
-                        print(f"  Found lat '{key}': {lat.shape}")
-    else:
-        # 普通 .mat 格式
-        for key, value in mat_data.items():
-            if key.startswith('__'):
-                continue
-            if isinstance(value, np.ndarray):
-                if value.ndim == 2 and h_grid is None:
-                    if value.shape[0] > 10 and value.shape[1] > 10:
-                        h_grid = value
-                        print(f"  Found grid '{key}': {h_grid.shape}")
-                elif value.ndim == 1:
-                    if lon is None and len(value) > 10:
-                        lon = value
-                        print(f"  Found lon '{key}': {lon.shape}")
-                    elif lat is None and len(value) > 10:
-                        lat = value
-                        print(f"  Found lat '{key}': {lat.shape}")
-    
-    if h_grid is None:
-        raise ValueError("Could not find elevation grid in .mat file")
-    
-    return lon, lat, h_grid
-
-
 def estimate_mwl(d18o, d2h, sd_res_ratio=28.3):
     """估算气象水线 (Meteoric Water Line)"""
     d18o = np.asarray(d18o).flatten()
@@ -157,61 +89,6 @@ def estimate_mwl(d18o, d2h, sd_res_ratio=28.3):
     cov = np.array([[sd_residuals**2, 0], [0, sd_residuals**2]])
     
     return np.array([intercept, slope]), sd_residuals, sd_residuals, cov, np.arange(n)
-
-
-def get_input(data_path, topo_file, r_tukey, sample_file, sd_res_ratio=28.3):
-    """获取输入数据 - 仿照 MATLAB getInput"""
-    # 读取地形数据
-    topo_path = os.path.join(data_path, topo_file)
-    lon, lat, h_grid = grid_read(topo_path)
-    
-    # 应用 Tukey 窗口减少边缘效应
-    if r_tukey > 0:
-        n_y, n_x = h_grid.shape
-        window_y = tukey_window(n_y, r_tukey)
-        window_x = tukey_window(n_x, r_tukey)
-        window = np.outer(window_y, window_x)
-        h_grid = window * h_grid
-        print(f"  Applied Tukey window (r={r_tukey})")
-    
-    # 读取样本数据
-    sample_path = os.path.join(data_path, sample_file)
-    print(f"Reading samples: {sample_path}")
-    df = pd.read_excel(sample_path, header=0)
-    df = df.dropna()
-    print(f"  Loaded {len(df)} samples")
-    
-    # 解析样本数据
-    sample_lon = df.iloc[:, 0].astype(float).values
-    sample_lat = df.iloc[:, 1].astype(float).values
-    sample_d2h = df.iloc[:, 3].astype(float).values * 1e-3  # 转换为小数
-    sample_d18o = df.iloc[:, 4].astype(float).values * 1e-3
-    sample_lc = df.iloc[:, 5].astype(str).str.upper().str[0].values
-    
-    # 计算参考原点
-    lon0 = np.mean(sample_lon)
-    lat0 = np.mean(sample_lat)
-    
-    # 坐标转换
-    x, y = lonlat2xy(lon, lat, lon0, lat0)
-    sample_x, sample_y = lonlat2xy(sample_lon, sample_lat, lon0, lat0)
-    
-    # 计算科里奥利参数
-    omega = 7.2921e-5
-    f_c = 2 * omega * np.sin(np.deg2rad(lat0))
-    
-    # 估计气象水线
-    b_mwl, sd_min, sd_max, cov, i_fit = estimate_mwl(sample_d18o, sample_d2h, sd_res_ratio)
-    print(f"  MWL: slope={b_mwl[1]:.3f}, intercept={b_mwl[0]*1000:.2f}")
-    
-    return {
-        'lon': lon, 'lat': lat, 'x': x, 'y': y, 'h_grid': h_grid,
-        'lon0': lon0, 'lat0': lat0,
-        'sample_x_pri': sample_x[i_fit], 'sample_y_pri': sample_y[i_fit],
-        'sample_d2h_pri': sample_d2h[i_fit], 'sample_d18o_pri': sample_d18o[i_fit],
-        'sample_lc_pri': sample_lc[i_fit],
-        'b_mwl': b_mwl, 'cov': cov, 'f_c': f_c, 'h_r': 540.0
-    }
 
 
 def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,

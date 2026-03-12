@@ -1,6 +1,6 @@
 # OPI Jupyter Notebooks
 
-Interactive tutorials for learning and using OPI.
+Interactive tutorials for learning and using OPI Python.
 
 ## Quick Start
 
@@ -21,9 +21,9 @@ Learn the basics of OPI:
 - Save output
 
 **Key Topics:**
-- `opi.create_synthetic_dem()`
-- `opi.calc_one_wind()`
-- Basic visualization with Haxby colormap
+- `opi.tools.synthetic_topography.create_synthetic_dem()`
+- `opi.calc_one_wind()` (low-level calculation)
+- `opi.viz.maps.plot_*_map()` for visualization
 
 ### 2. [02_parameter_fitting.ipynb](02_parameter_fitting.ipynb) - Parameter Fitting
 **Level:** Intermediate | **Time:** ~20 minutes
@@ -35,8 +35,8 @@ Learn parameter optimization:
 - Analyze fitting results
 
 **Key Topics:**
-- `opi.opi_fit_one_wind()`
-- `opi.io.write_run_file()`
+- `opi.app.opi_fit_one_wind()`
+- `opi.io.run_file.parse_run_file()`
 - Residual analysis
 - Sample comparison plots
 
@@ -51,10 +51,47 @@ Complete guide to data input formats:
 - JSON (configuration)
 
 **Key Topics:**
-- `opi.io.grid_read()`
+- `opi.io.data_loader.grid_read()`
+- `opi.io.data_loader.get_input()`
 - `pd.read_excel()` / `pd.read_csv()`
 - `xarray` for NetCDF
 - `rasterio` for GeoTIFF
+
+### 4. [04_reproduce_gaussian_example.ipynb](04_reproduce_gaussian_example.ipynb) - Gaussian Example
+**Level:** Intermediate | **Time:** ~20 minutes
+
+Reproduce the classic Gaussian mountain example:
+- Load example topography
+- Run single wind calculation
+- Compare with published results
+- Generate publication-quality figures
+
+**Key Topics:**
+- Loading .mat topography files
+- Using `opi.app.opi_calc_one_wind()`
+- Advanced visualization with `opi.viz.advanced`
+
+## Module Structure (v1.0.0+)
+
+```python
+# Core calculation (low-level)
+from opi import calc_one_wind, calc_two_winds
+
+# High-level application functions
+from opi.app import opi_calc_one_wind, opi_calc_two_winds
+from opi.app import opi_fit_one_wind, opi_fit_two_winds
+
+# Visualization
+from opi.viz.maps import plot_topography_map, plot_precipitation_map
+from opi.viz.plots import plot_sample_comparison, plot_residuals
+
+# I/O utilities
+from opi.io.data_loader import grid_read, get_input
+from opi.io.run_file import parse_run_file, write_run_file
+
+# Tools
+from opi.tools.synthetic_topography import create_synthetic_dem
+```
 
 ## Running Notebooks
 
@@ -119,16 +156,40 @@ import opi
 
 **Solution:** Reduce grid resolution
 ```python
+from opi.tools.synthetic_topography import create_synthetic_dem
+
 # Use coarser grid
-dem = opi.create_synthetic_dem(
+dem = create_synthetic_dem(
     grid_size=(300e3, 300e3),
     grid_spacing=(5000, 5000)  # 5km instead of 2km
 )
 ```
 
+## Migration from Old API
+
+If you have code using the old API:
+
+```python
+# OLD (pre-v1.0)
+from opi import opi_calc_one_wind
+result = opi_calc_one_wind(run_file)
+
+# NEW (v1.0+)
+from opi.app import opi_calc_one_wind
+result = opi_calc_one_wind(run_file)
+```
+
+```python
+# OLD
+from opi import create_synthetic_dem
+
+# NEW
+from opi.tools.synthetic_topography import create_synthetic_dem
+```
+
 ## Next Steps
 
 After completing the notebooks:
-- See `../examples/` for complete scripts
+- See `../scripts/` for production workflows
 - Read `../README.md` for API reference
 - Check `../docs/MATLAB_PYTHON_COMPARISON.md` for MATLAB migration
