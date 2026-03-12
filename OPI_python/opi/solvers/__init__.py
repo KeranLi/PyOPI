@@ -1,25 +1,16 @@
 """
-Optimization Solvers for OPI Parameter Fitting
+Solver modules for OPI calculations.
 
-This module provides optimization algorithms for fitting OPI model parameters
-to observational data.
-
-Available Solvers
------------------
-CRS3Optimizer : Controlled Random Search with 3 parents
-    Global optimization algorithm suitable for non-convex problems.
-    This is the default optimizer used in the original MATLAB implementation.
-
-scipy_minimize : Wrapper for SciPy optimization
-    Interface to SciPy's optimization methods (L-BFGS-B, SLSQP, etc.)
-
-Example
--------
->>> from opi.solvers import CRS3Optimizer
->>> optimizer = CRS3Optimizer(bounds=(lower_bounds, upper_bounds))
->>> result = optimizer.minimize(objective_function, x0=initial_guess)
+These are implementations of the core physical algorithms.
 """
 
-from .crs3 import CRS3Optimizer, fmin_crs3
+# Placeholder imports - these would be implemented in full version
+from .fourier import FourierSolver
+from .precipitation import PrecipitationCalculator
+from .isotope import IsotopeCalculator
 
-__all__ = ['CRS3Optimizer', 'fmin_crs3']
+__all__ = [
+    'FourierSolver',
+    'PrecipitationCalculator', 
+    'IsotopeCalculator',
+]

@@ -1,51 +1,48 @@
 """
-OPI Model API
-=============
+OPI Data Models
 
-High-level model interface for running OPI simulations and optimizations.
-
-This module provides user-friendly interfaces for:
-- Single-wind and two-wind precipitation calculations
-- Parameter fitting using optimization algorithms
-- Batch simulations and sensitivity analysis
-
-Classes
--------
-OneWindModel : Single moisture source model
-TwoWindModel : Two moisture source (mixture) model
-
-Functions
----------
-un_calculation : Run a complete OPI calculation with given parameters
-fit_parameters : Fit OPI parameters to observational data
-
-Notes
------
-These high-level functions correspond to the MATLAB main programs:
-- opiCalc_OneWind.m, opiCalc_TwoWinds.m -> run_calculation
-- opiFit_OneWind.m, opiFit_TwoWinds.m -> fit_parameters
+This module contains all data classes for OPI, providing type-safe
+and structured representations of parameters, results, and configurations.
 """
 
-from .one_wind import (
-    OneWindModel, 
+from .domain import Grid, Topography, CoordinateSystem
+from .parameters import (
     OneWindParameters,
-    OneWindResult, 
-    run_one_wind
+    TwoWindParameters,
+    WindField,
+    AtmosphereState,
+    IsotopeParameters,
+    MicrophysicsParameters,
+    Sample,
+    SampleCollection
 )
-from .two_winds import (
-    TwoWindModel, 
-    TwoWindsParameters,
-    TwoWindsResult,
-    run_two_winds
+from .results import (
+    OneWindResults,
+    TwoWindResults,
+    PrecipitationGrid,
+    IsotopeGrid,
+    FourierSolution
 )
+from .config import OPIConfig, SolverConfig, OptimizerConfig
 
 __all__ = [
-    'OneWindModel',
+    # Domain
+    'Grid',
+    'Topography', 
+    'CoordinateSystem',
+    # Parameters
     'OneWindParameters',
-    'OneWindResult',
-    'run_one_wind',
-    'TwoWindModel',
-    'TwoWindsParameters', 
-    'TwoWindsResult',
-    'run_two_winds'
+    'TwoWindParameters',
+    'WindField',
+    'AtmosphereState',
+    # Results
+    'OneWindResults',
+    'TwoWindResults',
+    'PrecipitationGrid',
+    'IsotopeGrid',
+    'FourierSolution',
+    # Config
+    'OPIConfig',
+    'SolverConfig',
+    'OptimizerConfig',
 ]
