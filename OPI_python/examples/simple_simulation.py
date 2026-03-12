@@ -4,6 +4,8 @@ Simple OPI Simulation Example
 
 This script demonstrates a basic OPI simulation using synthetic data.
 Run with: python simple_simulation.py
+
+Uses the new OPI modular API (v1.0.0+)
 """
 
 import numpy as np
@@ -14,17 +16,18 @@ import os
 # Add parent directory to path if running from examples directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import opi
-from opi.calc_one_wind import calc_one_wind
-from opi.viz import plot_topography_map, plot_precipitation_map, plot_isotope_map
+# Import OPI modules (new API)
+from opi import calc_one_wind
+from opi.tools.synthetic_topography import create_synthetic_dem
+from opi.viz.maps import plot_topography_map, plot_precipitation_map, plot_isotope_map
 
 print("="*60)
-print("OPI Simple Simulation Example")
+print("OPI Simple Simulation Example (New API)")
 print("="*60)
 
 # 1. Create synthetic topography
 print("\n1. Creating synthetic topography...")
-dem = opi.create_synthetic_dem(
+dem = create_synthetic_dem(
     topo_type='gaussian',
     grid_size=(400e3, 400e3),    # 400km x 400km domain
     grid_spacing=(4000, 4000),   # 4km resolution
@@ -60,8 +63,6 @@ print(f"   Temperature: {beta[2]:.1f} K ({beta[2]-273.15:.1f}°C)")
 # 3. Prepare sample data (simplified for forward calculation)
 print("\n3. Preparing sample data...")
 n_samples = 3
-sample_x = np.array([0, 50000, -50000])
-sample_y = np.array([0, 0, 0])
 sample_d2h = np.array([-100, -110, -105]) * 1e-3
 sample_d18o = np.array([-12.5, -13.8, -13.1]) * 1e-3
 
@@ -148,7 +149,6 @@ print("   [OK] Figures saved to output/ directory")
 
 # 6. Save results
 print("\n6. Saving results...")
-from opi.io import save_opi_results
 
 results_dict = {
     'lon': dem['lon'],
@@ -164,8 +164,8 @@ results_dict = {
     'r_h_grid': r_h_grid,
 }
 
-save_opi_results('output/opi_results.mat', results_dict)
-print("   [OK] Results saved to output/opi_results.mat")
+np.savez('output/opi_results.npz', **results_dict)
+print("   [OK] Results saved to output/opi_results.npz")
 
 print("\n" + "="*60)
 print("Simulation complete!")
@@ -174,8 +174,8 @@ print("\nOutput files:")
 print("  - output/01_topography.png")
 print("  - output/02_precipitation.png")
 print("  - output/03_isotopes.png")
-print("  - output/opi_results.mat")
+print("  - output/opi_results.npz")
 print("\nNext steps:")
 print("  - Try different wind speeds (beta[0])")
 print("  - Try different wind directions (beta[1])")
-print("  - See notebooks/ for more examples")
+print("  - See ../scripts/ for production workflows")
