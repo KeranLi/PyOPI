@@ -11,6 +11,7 @@ from datetime import datetime
 
 from ..physics.calc_one_wind import calc_one_wind
 from ..io.data_loader import get_input
+from ..io.solutions_file import SolutionsFileWriter
 from ..optimization.crs3 import fmin_crs3
 from ..constants import SD_RES_RATIO, HR
 
@@ -114,12 +115,44 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000):
     free_bounds = [param_bounds[i] for i in range(9) if free_params[i]]
     free_initial = initial_guess[free_params]
     
+    # Initialize solutions file writer
+    param_labels = run_data.get('param_labels', 
+        ['U (m/s)', 'azimuth', 'T0 (K)', 'M', 'kappa (km^2/s)', 
+         'tau_c (s)', 'd2h0', 'd_d2h0_d_lat', 'fP'])
+    exponents = run_data.get('param_exponents', [0, 0, 0, 0, 6, 0, -3, -3, 0])
+    
+    writer = SolutionsFileWriter()
+    writer.initialize(
+        run_path=run_dir,
+        run_title=run_data.get('run_title', 'OPI Fit One Wind'),
+        n_samples=len(input_data['sample_x']),
+        parameter_labels=param_labels,
+        exponents=exponents,
+        lb=run_data['param_constraints_min'],
+        ub=run_data['param_constraints_max']
+    )
+    
+    iteration_counter = [0]  # Use list to allow modification in nested function
+    
+    def callback(x, fval):
+        """Callback to write solution at each iteration."""
+        iteration_counter[0] += 1
+        # Reconstruct full beta from free parameters
+        beta_full = initial_guess.copy()
+        beta_full[free_params] = x
+        # nu is typically n_samples - n_free for fitting
+        nu = max(1, len(input_data['sample_x']) - n_free)
+        writer.write_solution(iteration_counter[0], fval, nu, beta_full.tolist())
+    
     try:
         opt_result = fmin_crs3(
             objective, free_bounds, mu=run_data.get('mu', 25),
             epsilon=run_data.get('epsilon', 1e-6), max_iter=max_iterations,
-            random_state=42, verbose=verbose
+            random_state=42, verbose=verbose, callback=callback
         )
+        
+        # Close solutions file
+        writer.close()
         
         solution_vector = initial_guess.copy()
         solution_vector[free_params] = opt_result.x
@@ -136,6 +169,7 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000):
             'solution_vector': solution_vector.tolist()
         }
     except Exception as e:
+        writer.close()
         return {'solution_params': {}, 'misfit': np.nan, 'iterations': 0, 
                 'convergence': False, 'message': f'Optimization failed: {str(e)}'}
 
@@ -273,12 +307,44 @@ def opi_fit_two_winds(run_file_path=None, divide_file=None, verbose=True, max_it
     free_bounds = [param_bounds[i] for i in range(19) if free_params[i]]
     free_initial = initial_guess[free_params]
     
+    # Initialize solutions file writer
+    param_labels = [
+        'U1 (m/s)', 'azimuth1', 'T0_1 (K)', 'M1', 'kappa1 (km^2/s)', 
+        'tau_c1 (s)', 'd2h0_1', 'd_d2h0_d_lat1', 'fP1',
+        'U2 (m/s)', 'azimuth2', 'T0_2 (K)', 'M2', 'kappa2 (km^2/s)', 
+        'tau_c2 (s)', 'd2h0_2', 'd_d2h0_d_lat2', 'fP2', 'frac2'
+    ]
+    exponents = [0, 0, 0, 0, 6, 0, -3, -3, 0, 0, 0, 0, 0, 6, 0, -3, -3, 0, 0]
+    
+    writer = SolutionsFileWriter()
+    writer.initialize(
+        run_path=run_dir,
+        run_title=run_data.get('run_title', 'OPI Fit Two Winds'),
+        n_samples=n_samples,
+        parameter_labels=param_labels,
+        exponents=exponents,
+        lb=bounds_lower.tolist(),
+        ub=bounds_upper.tolist()
+    )
+    
+    iteration_counter = [0]
+    
+    def callback(x, fval):
+        """Callback to write solution at each iteration."""
+        iteration_counter[0] += 1
+        beta_full = initial_guess.copy()
+        beta_full[free_params] = x
+        nu = max(1, n_samples - n_free)
+        writer.write_solution(iteration_counter[0], fval, nu, beta_full.tolist())
+    
     try:
         opt_result = fmin_crs3(
             objective, free_bounds, mu=run_data.get('mu', 25),
             epsilon=run_data.get('epsilon', 1e-6), max_iter=max_iterations,
-            random_state=42, verbose=verbose
+            random_state=42, verbose=verbose, callback=callback
         )
+        
+        writer.close()
         
         solution_vector = initial_guess.copy()
         solution_vector[free_params] = opt_result.x
@@ -302,6 +368,7 @@ def opi_fit_two_winds(run_file_path=None, divide_file=None, verbose=True, max_it
             'sample_types': sample_types
         }
     except Exception as e:
+        writer.close()
         return {'solution_params': {}, 'misfit': np.nan, 'convergence': False,
                 'message': f'Optimization failed: {str(e)}'}
 

@@ -3,6 +3,7 @@ Solutions File Handler for OPI
 
 Handles reading and writing of OPI optimization solution files.
 Matches MATLAB's getSolutions.m and writeSolutions.m
+
 """
 
 import os
@@ -64,12 +65,15 @@ class SolutionsFileWriter:
         
         # Write header
         self.fid.write(f"% Solution file for optimization using opiFit\n")
-        self.fid.write(f"% Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        # Use MATLAB-compatible datetime format (e.g., '13-Mar-2026 10:30:15')
+        start_time_str = datetime.now().strftime('%d-%b-%Y %H:%M:%S')
+        self.fid.write(f"% Start time: {start_time_str}\n")
         self.fid.write(f"% Original run path:\n% {run_path}\n")
         self.fid.write(f"% Run title:\n{run_title}\n")
         self.fid.write(f"% Number of observations:\n{n_samples}\n")
         self.fid.write(f"% Parameter labels:\n")
-        self.fid.write("|".join(parameter_labels) + "\n")
+        # MATLAB-compatible format: tab-separated parameter labels
+        self.fid.write("    ".join(parameter_labels) + "\n")
         self.fid.write(f"% Exponent for power of 10 factoring for plotted variables labeled above:\n")
         self.fid.write("\t".join(str(e) for e in exponents) + "\n")
         self.fid.write(f"% Lower and upper constraints for parameter search:\n")
@@ -121,7 +125,8 @@ class SolutionsFileWriter:
     def close(self) -> None:
         """Close the solutions file."""
         if self.is_started and self.fid is not None:
-            self.fid.write(f"% Finish time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            finish_time_str = datetime.now().strftime('%d-%b-%Y %H:%M:%S')
+            self.fid.write(f"% Finish time: {finish_time_str}\n")
             self.fid.close()
             self.is_started = False
     
