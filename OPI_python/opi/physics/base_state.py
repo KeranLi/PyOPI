@@ -5,7 +5,7 @@ Base state calculation for the atmosphere in the absence of topography
 import numpy as np
 from scipy.optimize import fsolve
 from .saturated_vapor_pressure import saturated_vapor_pressure
-from .constants import G, CPD, CPV, RD, L, P0, EPSILON
+from ..constants import G, CPD, CPV, RD, L, P0, EPSILON
 
 
 def base_state(NM, T0, z_max=12e3, dz=100):

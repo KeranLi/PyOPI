@@ -7,7 +7,7 @@ for modeling precipitation from two distinct moisture sources.
 
 import numpy as np
 from datetime import datetime
-from ..calc_one_wind import calc_one_wind
+from ..physics.calc_one_wind import calc_one_wind
 from ..io.data_loader import get_input
 from ..constants import HR, SD_RES_RATIO
 
@@ -120,7 +120,7 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
     sample_d2h = np.array([np.nan])
     sample_d18o = np.array([np.nan])
     
-    from ..catchment.nodes import catchment_nodes
+    from ..catchment import catchment_nodes
     ij_catch = []
     ptr_catch = [0]
     

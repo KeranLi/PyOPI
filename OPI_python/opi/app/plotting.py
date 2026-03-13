@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 
 from ..constants import *
-from ..physics.thermodynamics import base_state, saturated_vapor_pressure
+from ..physics import base_state, saturated_vapor_pressure
 
 
 def opi_plots_one_wind(calc_result, output_dir=None, plot_format='png', verbose=True):

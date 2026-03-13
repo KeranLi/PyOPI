@@ -11,16 +11,26 @@ Contains atmospheric physics calculations:
 - Velocity perturbations and streamlines
 """
 
-from .thermodynamics import saturated_vapor_pressure, base_state
-from .fractionation import (
-    fractionation_hydrogen, 
-    fractionation_oxygen,
-    fractionation_hydrogen_simple,
-    fractionation_oxygen_simple
-)
-from .fourier import wind_grid, fourier_solution
-from .precipitation import isotherm, precipitation_grid
-from .isotope import isotope_grid
+# Thermodynamics (MATLAB converted implementation)
+from .saturated_vapor_pressure import saturated_vapor_pressure
+from .base_state import base_state
+
+# Fractionation (MATLAB converted implementation)
+from .fractionation_hydrogen import fractionation_hydrogen
+from .fractionation_oxygen import fractionation_oxygen
+
+# Fourier solution (MATLAB converted implementation)
+from .fourier_solution import wind_grid, fourier_solution
+
+# Precipitation and isotopes (MATLAB converted implementation)
+from .precipitation_grid import precipitation_grid
+from .isotope_grid import isotope_grid
+
+# Core calculation functions (MATLAB converted implementation)
+from .calc_one_wind import calc_one_wind
+from .calc_two_winds import calc_two_winds
+
+# Additional physics utilities
 from .lifting import (
     calculate_vertical_velocity,
     calculate_lifting_max,
@@ -43,15 +53,15 @@ __all__ = [
     # Fourier solution
     'wind_grid',
     'fourier_solution',
-    # Precipitation
-    'isotherm',
+    # Precipitation and isotopes
     'precipitation_grid',
-    # Isotopes
     'isotope_grid',
+    # Fractionation
     'fractionation_hydrogen',
     'fractionation_oxygen',
-    'fractionation_hydrogen_simple',
-    'fractionation_oxygen_simple',
+    # Core calculations
+    'calc_one_wind',
+    'calc_two_winds',
     # Lifting
     'calculate_vertical_velocity',
     'calculate_lifting_max',
