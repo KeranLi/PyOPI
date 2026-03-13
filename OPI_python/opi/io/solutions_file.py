@@ -29,7 +29,8 @@ class SolutionsFileWriter:
     
     def initialize(self, run_path: str, run_title: str, n_samples: int,
                    parameter_labels: List[str], exponents: List[int],
-                   lb: List[float], ub: List[float]) -> None:
+                   lb: List[float], ub: List[float],
+                   m_set: int = 100, epsilon0: float = 0.001) -> None:
         """
         Initialize solutions file.
         
@@ -47,6 +48,10 @@ class SolutionsFileWriter:
             Power-of-10 scaling factors
         lb, ub : list
             Lower and upper bounds
+        m_set : int
+            Size of search set (default 100)
+        epsilon0 : float
+            Stopping criterion (default 0.001)
         """
         self.n_parameters = len(exponents)
         self.filepath = os.path.join(run_path, 'opiFit_Solutions.txt')
@@ -72,13 +77,15 @@ class SolutionsFileWriter:
         self.fid.write(f"% Run title:\n{run_title}\n")
         self.fid.write(f"% Number of observations:\n{n_samples}\n")
         self.fid.write(f"% Parameter labels:\n")
-        # MATLAB-compatible format: tab-separated parameter labels
-        self.fid.write("    ".join(parameter_labels) + "\n")
+        # MATLAB-compatible format: | separated parameter labels
+        self.fid.write("|".join(parameter_labels) + "\n")
         self.fid.write(f"% Exponent for power of 10 factoring for plotted variables labeled above:\n")
         self.fid.write("\t".join(str(e) for e in exponents) + "\n")
         self.fid.write(f"% Lower and upper constraints for parameter search:\n")
         self.fid.write("\t".join(str(b) for b in lb) + "\n")
         self.fid.write("\t".join(str(b) for b in ub) + "\n")
+        self.fid.write(f"% Size of search set\n{m_set}\n")
+        self.fid.write(f"% Specified epsilon value for stopping criterion, epsilon0\n{epsilon0}\n")
     
     def write_solution(self, iteration: int, chi_r2: float, nu: int, 
                        beta: List[float]) -> None:
@@ -125,6 +132,7 @@ class SolutionsFileWriter:
     def close(self) -> None:
         """Close the solutions file."""
         if self.is_started and self.fid is not None:
+            self.fid.write("END\n")
             finish_time_str = datetime.now().strftime('%d-%b-%Y %H:%M:%S')
             self.fid.write(f"% Finish time: {finish_time_str}\n")
             self.fid.close()
