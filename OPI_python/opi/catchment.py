@@ -1,10 +1,10 @@
 """
-Catchment Nodes Calculation
+Catchment (watershed) related calculations for OPI.
 
-Find nodes in h_grid that are upstream of each sample location.
-Uses D8 flow routing algorithm to identify upslope catchment area.
+This module provides functions to identify and work with catchment areas
+upstream of sample locations using D8 flow routing algorithm.
 
-Reference: MATLAB catchmentNodes.m by Mark Brandon, Yale University
+Reference: MATLAB catchmentNodes.m and catchmentIndices.m by Mark Brandon, Yale University
 """
 
 import numpy as np
@@ -14,6 +14,7 @@ from scipy import ndimage
 def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
     """
     Find nodes in h_grid that are upstream of each sample location.
+    Uses D8 flow routing algorithm to identify upslope catchment area.
     
     Parameters
     ----------
@@ -156,41 +157,10 @@ def catchment_indices(sample_idx, ij_catch, ptr_catch):
     list of tuples
         List of (row, col) indices for the specified sample's catchment
     """
-    start_idx = ptr_catch[sample_idx]
+    if sample_idx < 0 or sample_idx >= len(ptr_catch) - 1:
+        raise IndexError("sample_idx is out of range")
     
-    if sample_idx < len(ptr_catch) - 1:
-        end_idx = ptr_catch[sample_idx + 1]
-    else:
-        end_idx = len(ij_catch)
+    start_idx = ptr_catch[sample_idx]
+    end_idx = ptr_catch[sample_idx + 1]
     
     return ij_catch[start_idx:end_idx]
-
-
-if __name__ == "__main__":
-    print("Testing catchment_nodes module...")
-    
-    # Create a simple test grid
-    x = np.linspace(0, 10000, 21)
-    y = np.linspace(0, 10000, 21)
-    X, Y = np.meshgrid(x, y)
-    
-    # Create a simple mountain
-    h_grid = 1000 * np.exp(-((X - 5000)**2 + (Y - 5000)**2) / (2 * 2000**2))
-    
-    # Test samples
-    sample_x = np.array([5000, 3000, 7000])
-    sample_y = np.array([5000, 3000, 7000])
-    sample_lc = np.array(['L', 'C', 'C'])  # Local, Catchment, Catchment
-    
-    # Run catchment_nodes
-    ij_catch, ptr_catch = catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid)
-    
-    print(f"Number of samples: {len(sample_x)}")
-    print(f"Total catchment nodes: {len(ij_catch)}")
-    print(f"Pointer array: {ptr_catch}")
-    
-    for i in range(len(sample_x)):
-        indices = catchment_indices(i, ij_catch, ptr_catch)
-        print(f"Sample {i} ({sample_lc[i]}): {len(indices)} nodes")
-    
-    print("\nTest completed successfully!")

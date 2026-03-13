@@ -6,11 +6,11 @@ import os
 import numpy as np
 from datetime import datetime
 from scipy.io import loadmat, savemat
-from ..calc_one_wind import calc_one_wind
+from ..physics.calc_one_wind import calc_one_wind
 from ..io.data_loader import get_input
 from ..constants import TC2K, RADIUS_EARTH, M_PER_DEGREE, HR, SD_RES_RATIO
 from ..io.coordinates import lonlat2xy, xy2lonlat
-from ..catchment.nodes import catchment_nodes
+from ..catchment import catchment_nodes
 
 
 def load_run_file(run_file_path):

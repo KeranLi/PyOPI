@@ -10,7 +10,7 @@ from scipy.interpolate import RegularGridInterpolator
 from .base_state import base_state
 from .precipitation_grid import precipitation_grid
 from .isotope_grid import isotope_grid
-from .catchment_indices import catchment_indices
+from ..catchment import catchment_indices
 
 
 def calc_two_winds(beta, f_c, h_r, x, y, lat, lat0, h_grid, b_mwl_sample,

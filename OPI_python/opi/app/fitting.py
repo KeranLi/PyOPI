@@ -9,7 +9,7 @@ import numpy as np
 import os
 from datetime import datetime
 
-from ..calc_one_wind import calc_one_wind
+from ..physics.calc_one_wind import calc_one_wind
 from ..io.data_loader import get_input
 from ..optimization.crs3 import fmin_crs3
 from ..constants import SD_RES_RATIO, HR
@@ -85,7 +85,7 @@ def opi_fit_one_wind(run_file_path=None, verbose=True, max_iterations=10000):
         print(f"  Optimization method: CRS3")
     
     # Calculate catchment nodes
-    from ..catchment.nodes import catchment_nodes
+    from ..catchment import catchment_nodes
     ij_catch, ptr_catch = catchment_nodes(
         input_data['sample_x'], input_data['sample_y'],
         input_data['sample_lc'], input_data['x'], input_data['y'],
@@ -227,7 +227,7 @@ def opi_fit_two_winds(run_file_path=None, divide_file=None, verbose=True, max_it
     
     cov = input_data['cov'] if input_data['cov'] is not None else np.array([[1e-6, 0], [0, 1e-6]])
     
-    from ..catchment.nodes import catchment_nodes
+    from ..catchment import catchment_nodes
     ij_catch, ptr_catch = catchment_nodes(
         input_data['sample_x'], input_data['sample_y'],
         input_data['sample_lc'], input_data['x'], input_data['y'], input_data['h_grid']
