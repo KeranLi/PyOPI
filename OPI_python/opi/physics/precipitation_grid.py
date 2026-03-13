@@ -25,6 +25,9 @@ def isotherm(TR, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z):
     """
     Calculate height array for isothermal surface with temperature TR.
     
+    Matches MATLAB's isotherm.m function, including linear extrapolation
+    behavior for temperatures outside the profile range.
+    
     Parameters
     ----------
     TR : float
@@ -51,37 +54,25 @@ def isotherm(TR, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z):
     z_R : ndarray
         Height of TR surface (matrix, m)
     """
-    # np.interp requires x to be increasing
-    # T is typically decreasing (from surface to upper atmosphere)
-    # So we need to flip the arrays
-    if T[0] > T[-1]:
-        # T is decreasing, flip for interpolation
-        T_flip = T[::-1]
-        z_bar_flip = z_bar[::-1]
-    else:
-        T_flip = T
-        z_bar_flip = z_bar
+    from scipy.interpolate import interp1d
+    
+    # Use scipy's interp1d with extrapolation to match MATLAB's 'linear', 'extrap'
+    # MATLAB: zBarR = interp1(T, zBar, TR, 'linear', 'extrap')
     
     # Base-state elevation of specified isotherm temperature TR
-    z_bar_R = np.interp(TR, T_flip, z_bar_flip, left=z_bar_flip[0], right=z_bar_flip[-1])
-    
-    # Ensure z_bar is increasing for the next interpolations
-    if z_bar[0] > z_bar[-1]:
-        z_bar_flip = z_bar[::-1]
-        gamma_env_flip = gamma_env[::-1]
-        gamma_sat_flip = gamma_sat[::-1]
-    else:
-        z_bar_flip = z_bar
-        gamma_env_flip = gamma_env
-        gamma_sat_flip = gamma_sat
+    # Note: scipy interp1d handles both increasing and decreasing x
+    interp_z = interp1d(T, z_bar, kind='linear', fill_value='extrapolate', bounds_error=False)
+    z_bar_R = float(interp_z(TR))
     
     # Base-state environmental lapse rate at z_bar_R
-    gamma_env_bar_R = np.interp(z_bar_R, z_bar_flip, gamma_env_flip, 
-                                left=gamma_env_flip[0], right=gamma_env_flip[-1])
+    interp_gamma_env = interp1d(z_bar, gamma_env, kind='linear', 
+                                 fill_value='extrapolate', bounds_error=False)
+    gamma_env_bar_R = float(interp_gamma_env(z_bar_R))
     
     # Base-state saturation lapse rate at z_bar_R
-    gamma_sat_bar_R = np.interp(z_bar_R, z_bar_flip, gamma_sat_flip,
-                                left=gamma_sat_flip[0], right=gamma_sat_flip[-1])
+    interp_gamma_sat = interp1d(z_bar, gamma_sat, kind='linear',
+                                 fill_value='extrapolate', bounds_error=False)
+    gamma_sat_bar_R = float(interp_gamma_sat(z_bar_R))
     
     # Calculate perturbation height, z_prime, for the z_bar_R stream surface
     exponent = (1j * k_z + 1/(2*h_rho)) * z_bar_R
