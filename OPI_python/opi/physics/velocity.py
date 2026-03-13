@@ -168,7 +168,7 @@ class VelocityCalculator:
         is_first : bool
             If True, recompute Fourier solution
         """
-        if is_first or self.s is None:
+        if self.s is None:
             raise RuntimeError("Must call compute_fourier_solution first")
         
         # Check if we need to recompute
