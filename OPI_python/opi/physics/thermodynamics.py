@@ -2,31 +2,13 @@
 Thermodynamic calculations for atmospheric processes.
 
 Includes:
-- Saturated vapor pressure (Tetens equation)
+- Saturated vapor pressure (Goff-Gratch equation)
 - Base state atmospheric profiles
 """
 
 import numpy as np
 from scipy.optimize import fsolve
-
-
-def saturated_vapor_pressure(temperature):
-    """
-    Calculate saturated vapor pressure using Tetens equation.
-    
-    Parameters
-    ----------
-    temperature : float or array-like
-        Temperature in Kelvin
-    
-    Returns
-    -------
-    e_s : float or ndarray
-        Saturated vapor pressure in Pa
-    """
-    temp_celsius = temperature - 273.15
-    e_s = 6.1078 * np.power(10.0, (7.5 * temp_celsius) / (237.3 + temp_celsius))
-    return e_s * 100.0  # Convert hPa to Pa
+from .saturated_vapor_pressure import saturated_vapor_pressure
 
 
 def base_state(NM, T0, z_max=12e3, dz=100, 
