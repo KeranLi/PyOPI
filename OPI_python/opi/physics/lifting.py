@@ -2,7 +2,10 @@
 Lifting and Vertical Motion Calculations
 
 Calculates vertical air motion (w) and related quantities
-from the Fourier solution.
+from the Fourier solution, and sample location lifting analysis.
+
+Matches MATLAB's lifting.m functionality for sample calculations
+and provides additional vertical velocity utilities.
 
 Reference: Durran and Klemp, 1982
 """
@@ -118,6 +121,131 @@ def calculate_lifting_max(w_grid, z_levels, h_grid, s, t, Sxy, Txy):
     return lift_max
 
 
+def calculate_lifting_for_samples(x, y, h_grid, p_grid, azimuth, U, tau_f,
+                                   ij_catch, ptr_catch):
+    """
+    Calculate maximum lifting for sample locations.
+    
+    Matches MATLAB's lifting.m function.
+    
+    Parameters
+    ----------
+    x, y : ndarray
+        Grid vectors for geographic grids (m)
+    h_grid : ndarray
+        Topography grid (m)
+    p_grid : ndarray
+        Precipitation rate grid (kg/m^2/s)
+    azimuth : float
+        Wind direction (degrees from North)
+    U : float
+        Wind speed (m/s)
+    tau_f : float
+        Mean precipitation fall time (s)
+    ij_catch : list of tuples
+        List of (row, col) indices for catchment nodes
+    ptr_catch : list of int
+        Pointers to start of each sample's catchment nodes
+    
+    Returns
+    -------
+    lift_max_pred : ndarray
+        Maximum lifting for each sample (m)
+    elevation_pred : ndarray
+        Elevation (local or catchment average) for each sample (m)
+    subsidence_pred : ndarray
+        Subsidence (max elevation - sample elevation) for each sample (m)
+    """
+    from ..catchment import catchment_indices
+    from .wind_grid import wind_grid
+    
+    n_samples = len(ptr_catch) - 1  # ptr_catch has n_samples+1 elements
+    
+    lift_max_pred = np.full(n_samples, np.nan)
+    elevation_pred = np.full(n_samples, np.nan)
+    subsidence_pred = np.full(n_samples, np.nan)
+    
+    if n_samples == 0:
+        return lift_max_pred, elevation_pred, subsidence_pred
+    
+    # Transform topography to wind coordinates
+    Sxy, Txy, s, t, Xst, Yst = wind_grid(x, y, azimuth)
+    
+    # Offset topography upwind to account for downwind transport during fallout
+    azimuth_rad = np.deg2rad(azimuth)
+    Xst = Xst - U * np.sin(azimuth_rad) * tau_f
+    Yst = Yst - U * np.cos(azimuth_rad) * tau_f
+    
+    # Interpolate topography to offset wind grid
+    interp_h = RegularGridInterpolator(
+        (y, x), h_grid,
+        method='linear', bounds_error=False, fill_value=0
+    )
+    h_wind = interp_h(np.column_stack([Yst.ravel(), Xst.ravel()])).reshape(Xst.shape)
+    
+    # Calculate maximum upwind lifting for points in each column
+    # cummax along s (axis=0, downwind direction)
+    lift_max_wind = np.maximum.accumulate(h_wind, axis=0)
+    
+    # Transform lift_max back to geographic coordinates
+    # Note: interp_lift expects (s, t) coordinates, query points are (Sxy, Txy)
+    interp_lift = RegularGridInterpolator(
+        (s, t), lift_max_wind,
+        method='linear', bounds_error=False, fill_value=0
+    )
+    lift_max_grid = interp_lift(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
+    
+    # Calculate subsidence using elevation with no offset
+    # Re-interpolate original topography to wind grid (no offset)
+    Xst_no_offset = Xst + U * np.sin(azimuth_rad) * tau_f
+    Yst_no_offset = Yst + U * np.cos(azimuth_rad) * tau_f
+    h_wind_no_offset = interp_h(np.column_stack([Yst_no_offset.ravel(), Xst_no_offset.ravel()])).reshape(Xst.shape)
+    
+    # Calculate maximum upwind elevation
+    elevation_max_wind = np.maximum.accumulate(h_wind_no_offset, axis=0)
+    
+    # Transform back to geographic coordinates
+    # Note: interp_elev expects (s, t) coordinates, query points are (Sxy, Txy)
+    interp_elev = RegularGridInterpolator(
+        (s, t), elevation_max_wind,
+        method='linear', bounds_error=False, fill_value=0
+    )
+    elevation_max_grid = interp_elev(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
+    
+    # Calculate averages for each sample
+    for k in range(n_samples):
+        # Extract indices for this sample's catchment
+        indices = catchment_indices(k, ij_catch, ptr_catch)
+        
+        if len(indices) == 0:
+            continue
+        
+        # Extract grid values for catchment
+        rows = [idx[0] for idx in indices]
+        cols = [idx[1] for idx in indices]
+        
+        p_catch = p_grid[rows, cols]
+        lift_max_catch = lift_max_grid[rows, cols]
+        h_catch = h_grid[rows, cols]
+        elev_max_catch = elevation_max_grid[rows, cols]
+        
+        # Calculate sum of precipitation rates
+        p_sum = np.sum(p_catch)
+        
+        if p_sum > 0:
+            # Precipitation-weighted averages
+            lift_max_pred[k] = np.sum(p_catch * lift_max_catch) / p_sum
+            elevation_pred[k] = np.sum(p_catch * h_catch) / p_sum
+            subsidence_pred[k] = np.sum(p_catch * elev_max_catch) / p_sum - elevation_pred[k]
+        else:
+            # No precipitation, use uniform weighting
+            lift_max_pred[k] = np.mean(lift_max_catch)
+            elevation_pred[k] = np.mean(h_catch)
+            subsidence_pred[k] = np.mean(elev_max_catch) - elevation_pred[k]
+    
+    return lift_max_pred, elevation_pred, subsidence_pred
+
+
 def calculate_streamlines(x, y, u_grid, v_grid, w_grid=None, 
                          start_points=None, n_points=100, max_steps=1000):
     """
@@ -143,8 +271,6 @@ def calculate_streamlines(x, y, u_grid, v_grid, w_grid=None,
     streamlines : list
         List of streamline coordinates (each is n x 3 array)
     """
-    from scipy.interpolate import RegularGridInterpolator
-    
     # Create interpolators
     X, Y = np.meshgrid(x, y, indexing='ij')
     
