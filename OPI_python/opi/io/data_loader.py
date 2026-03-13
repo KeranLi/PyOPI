@@ -71,13 +71,27 @@ def grid_read(mat_file_path):
     for key, value in numeric_vars.items():
         if key == grid_key:
             continue
-        if value.ndim == 2 and value.shape[0] == 1:
-            value = value.flatten()
-        if value.ndim == 1:
-            if len(value) == n_x and x_key is None:
-                x_key = key
-            elif len(value) == n_y and y_key is None:
-                y_key = key
+        # Handle both 1D arrays and 2D row/column vectors
+        if value.ndim == 2:
+            if value.shape[0] == 1:
+                # Row vector (1, n) -> treat as 1D of length n
+                value_len = value.shape[1]
+            elif value.shape[1] == 1:
+                # Column vector (n, 1) -> treat as 1D of length n
+                value_len = value.shape[0]
+            else:
+                # 2D array but not a vector, skip
+                continue
+        elif value.ndim == 1:
+            value_len = len(value)
+        else:
+            continue
+        
+        # Match to x or y based on length
+        if value_len == n_x and x_key is None:
+            x_key = key
+        elif value_len == n_y and y_key is None:
+            y_key = key
     
     if x_key is None or y_key is None:
         raise ValueError(f"Could not find matching grid vectors. Grid shape: {z.shape}")
