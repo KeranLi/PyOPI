@@ -14,6 +14,10 @@ Reference: Smith and Barstad, 2004
 
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator, interp1d
+try:
+    from scipy.integrate import cumulative_trapezoid as cumtrapz
+except ImportError:
+    from scipy.integrate import cumtrapz
 from .fourier_solution import fourier_solution
 
 
@@ -257,9 +261,11 @@ def precipitation_grid(x, y, h_grid, U, azimuth, NM, f_c, kappa, tau_c,
         f_p_wind[r_h_wind < 1] = f_p0
     
     # Integrate along columns (+s direction) to calculate water-vapor ratio f_v
-    # Using cumtrapz (cumulative trapezoidal integration)
-    integrand = f_p_wind * p_star_pos_wind * d_s / QT_star_pos_wind
-    f_v_wind = (rho_s0 * h_s / QT_star_pos_wind) * np.exp(-(1.0/U) * np.cumsum(integrand, axis=0) * d_s)
+    # Using cumulative_trapezoid (cumtrapz) to match MATLAB's cumtrapz
+    integrand = f_p_wind * p_star_pos_wind / QT_star_pos_wind
+    # cumulative_trapezoid with dx=d_s gives same result as MATLAB cumtrapz with spacing dS
+    integral = cumtrapz(integrand, dx=d_s, axis=0, initial=0)
+    f_v_wind = (rho_s0 * h_s / QT_star_pos_wind) * np.exp(-(1.0/U) * integral)
     
     # Calculate precipitation rate
     p_wind = f_v_wind * p_star_pos_wind
