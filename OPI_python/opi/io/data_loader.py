@@ -299,11 +299,14 @@ def get_input(data_path, topo_file, r_tukey=0.0, sample_file=None, sd_res_ratio=
         sample_line = df.index.values + 1
         
         # Parse sample data
+        # Excel column order: 1=Longitude, 2=Latitude, 3=Elevation, 4=d2H, 5=d18O, 6=Type
         sample_lon = df.iloc[:, 0].values
         sample_lat = df.iloc[:, 1].values
-        sample_d2h = df.iloc[:, 2].values * 1e-3  # Convert permil to fraction
-        sample_d18o = df.iloc[:, 3].values * 1e-3
-        sample_lc = df.iloc[:, 4].astype(str).str.upper().str[0].values
+        # Column 2 (index 2) is Elevation - not used currently but read for compatibility
+        sample_elev = df.iloc[:, 2].values
+        sample_d2h = df.iloc[:, 3].values * 1e-3  # Convert permil to fraction
+        sample_d18o = df.iloc[:, 4].values * 1e-3
+        sample_lc = df.iloc[:, 5].astype(str).str.upper().str[0].values
         
         # Check that samples lie within grid
         if np.any((lon[0] > sample_lon) | (lon[-1] < sample_lon) |
