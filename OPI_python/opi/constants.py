@@ -15,7 +15,7 @@ EPSILON = 0.622       # Molecular mass of water relative to air (kg/kg)
 
 # Earth characteristics
 RADIUS_EARTH = 6371e3      # Mean radius of the Earth (m)
-M_PER_DEGREE = 3.14159 * RADIUS_EARTH / 180  # Meters per arc degree for the Earth's surface
+M_PER_DEGREE = 3.141592653589793 * RADIUS_EARTH / 180  # Meters per arc degree for the Earth's surface
 OMEGA = 7.2921e-5          # Earth's rotation rate (rad/s)
 
 # Conversion factors
