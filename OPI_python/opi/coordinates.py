@@ -9,7 +9,9 @@ from .constants import M_PER_DEGREE
 def lonlat2xy(lon, lat, lon0, lat0):
     """
     Convert longitude/latitude coordinates to x/y coordinates relative to a reference point.
-    
+    In original Mark Brandon's code, the projection is the equirectangular projection.
+    In previous versions, the Pi was set as only 3.14, which is not accurent enough and now it is set as 3.141592653589793.
+    -----------------------------------------Keran Li, Nanjing University, China-----------------------------------------
     Parameters:
     -----------
     lon : float or array-like
@@ -37,7 +39,9 @@ def lonlat2xy(lon, lat, lon0, lat0):
 def xy2lonlat(x, y, lon0, lat0):
     """
     Convert x/y coordinates to longitude/latitude coordinates relative to a reference point.
-    
+    In original Mark Brandon's code, the projection is the equirectangular projection.
+    In previous versions, the Pi was set as only 3.14, which is not accurent enough and now it is set as 3.141592653589793.
+    -----------------------------------------Keran Li, Nanjing University, China-----------------------------------------
     Parameters:
     -----------
     x : float or array-like
