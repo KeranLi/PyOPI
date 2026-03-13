@@ -214,11 +214,11 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
         d2HEvapWind = (aEvapWind / aPrecWind) * R_PrecWind - 1
         F = RegularGridInterpolator((s, t), d2HEvapWind, method='linear', bounds_error=False, fill_value=None)
         del d2HEvapWind
-        evapD2HGrid = F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape)
+        evapD2HGrid = F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
         
         # Convert uEvap_d2HWind to geographic grid
         F = RegularGridInterpolator((s, t), uEvap_d2HWind, method='linear', bounds_error=False, fill_value=None)
-        uEvapD2HGrid = F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape)
+        uEvapD2HGrid = F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
         del F
     
     # Finalize d2H calculation
@@ -226,12 +226,18 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
     F = RegularGridInterpolator((s, t), R_PrecWind, method='linear', bounds_error=False, fill_value=None)
     del R_PrecWind
     
-    # Ensure lat is 2D for broadcasting
+    # Ensure lat is 2D for broadcasting with Sxy (n_s, n_t)
+    # lat should be shaped to broadcast correctly: (1, n_t) if length matches n_t
     if lat.ndim == 1:
-        lat = lat.reshape(-1, 1)
+        if lat.shape[0] == Sxy.shape[1]:
+            # lat varies along t direction (typical for latitude)
+            lat = lat.reshape(1, -1)
+        else:
+            # lat varies along s direction
+            lat = lat.reshape(-1, 1)
     
     d2HGrid = ((1 + d2H0 + dDH0dLat * (np.abs(lat) - np.abs(lat0)))
-               * F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape) - 1)
+               * F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape) - 1)
     
     # ============================================================
     # Calculate oxygen-isotope grid
@@ -294,11 +300,11 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
         d18OEvapWind = (aEvapWind / aPrecWind) * R_PrecWind - 1
         F = RegularGridInterpolator((s, t), d18OEvapWind, method='linear', bounds_error=False, fill_value=None)
         del d18OEvapWind
-        evapD18OGrid = F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape)
+        evapD18OGrid = F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
         
         F = RegularGridInterpolator((s, t), uEvap_d18OWind, method='linear', bounds_error=False, fill_value=None)
         del uEvap_d18OWind
-        uEvapD18OGrid = F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape)
+        uEvapD18OGrid = F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape)
         del F
     
     # Finalize d18O calculation
@@ -306,7 +312,7 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
     del R_PrecWind
     
     d18OGrid = ((1 + d18O0 + dD18O0_dLat * (np.abs(lat) - np.abs(lat0)))
-                * F(np.column_stack([Txy.ravel(), Sxy.ravel()])).reshape(Sxy.shape) - 1)
+                * F(np.column_stack([Sxy.ravel(), Txy.ravel()])).reshape(Sxy.shape) - 1)
     
     return d2HGrid, d18OGrid, evapD2HGrid, uEvapD2HGrid, evapD18OGrid, uEvapD18OGrid
 
