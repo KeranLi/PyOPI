@@ -56,7 +56,8 @@ class VelocityCalculator:
         h_rho : float
             Density scale height (m)
         """
-        from .fourier import fourier_solution, wind_grid
+        from .fourier_solution import fourier_solution
+        from .wind_grid import wind_grid
         
         # Compute Fourier solution
         fourier_result = fourier_solution(x, y, h_grid, U, azimuth, NM, f_c, h_rho)
@@ -103,29 +104,35 @@ class VelocityCalculator:
         u_prime_grid : ndarray
             u' grid in geographic coordinates (n_y x n_x)
         """
-        if is_first or self.s is None:
+        if self.s is None:
             raise RuntimeError("Must call compute_fourier_solution first")
         
-        # Create wavenumber grids
+        # Create wavenumber grids (match MATLAB's meshgrid format)
+        # h_hat shape: (n_s_pad, n_t_pad), k_s length: n_s_pad, k_t length: n_t_pad
         K_S, K_T = np.meshgrid(self.k_s, self.k_t, indexing='ij')
         K_Z = self.k_z
         
         # Calculate u' in Fourier space
         # u'hat = (i*k_s + f_c*k_t/(U*k_s))/(k_s^2 + k_t^2) * (i*k_z + 1/(2*h_rho)) * i*k_s*U*h_hat * exp((i*k_z + 1/(2*h_rho))*z_bar)
-        numerator = 1j * K_S + f_c * K_T / (U * K_S)
-        denominator = K_S**2 + K_T**2
-        vertical_factor = 1j * K_Z + 1 / (2 * h_rho)
-        exponential = np.exp((1j * K_Z + 1 / (2 * h_rho)) * z_bar)
+        # Handle k_s=0 singularity by setting numerator term to 0 when k_s=0
+        with np.errstate(divide='ignore', invalid='ignore'):
+            numerator = 1j * K_S + f_c * K_T / (U * K_S)
+            denominator = K_S**2 + K_T**2
+            vertical_factor = 1j * K_Z + 1 / (2 * h_rho)
+            exponential = np.exp((1j * K_Z + 1 / (2 * h_rho)) * z_bar)
+            
+            u_prime_hat = (numerator / denominator) * vertical_factor * 1j * K_S * U * self.h_hat * exponential
         
-        u_prime_hat = (numerator / denominator) * vertical_factor * 1j * K_S * U * self.h_hat * exponential
-        
-        # Set DC term to zero (singularity at k_s=0)
+        # Set DC term (k_s=0, k_t=0) to zero to handle singularity
         u_prime_hat[0, :] = 0
         
         # Transform to space domain
-        u_prime_wind = np.fft.ifft2(u_prime_hat, s=(self.n_s, self.n_t))
-        u_prime_wind = np.real(u_prime_wind)
-        u_prime_wind = u_prime_wind[:self.n_s, :self.n_t]
+        # Use full ifft2 then crop (matching MATLAB: uPrimeGrid = ifft2(uPrimeHat, 'symmetric'); then crop)
+        u_prime_wind_full = np.fft.ifft2(u_prime_hat)
+        # Take real part (input should be conjugate symmetric for real output)
+        u_prime_wind_full = np.real(u_prime_wind_full)
+        # Crop to original wind grid size (matching MATLAB: uPrimeGrid(1:nS, 1:nT))
+        u_prime_wind = u_prime_wind_full[:self.n_s, :self.n_t]
         
         # Transform to geographic coordinates
         # Create interpolator for wind grid
@@ -190,15 +197,15 @@ class VelocityCalculator:
         t_prime_hat = (numerator_t / denominator) * vertical_factor * z_prime_hat
         t_prime_hat[0, :] = 0  # Set DC term to zero
         
-        # Transform to space domain
-        z_s_wind_full = z_l0 + np.fft.ifft2(z_prime_hat, s=(self.n_s, self.n_t))
+        # Transform to space domain (full ifft2 then crop, matching MATLAB)
+        z_s_wind_full = z_l0 + np.fft.ifft2(z_prime_hat)
         self.z_s_wind = np.real(z_s_wind_full)[:self.n_s, :self.n_t]
         
-        s_s_wind_full = np.fft.ifft2(s_prime_hat, s=(self.n_s, self.n_t))
+        s_s_wind_full = np.fft.ifft2(s_prime_hat)
         S, T = np.meshgrid(self.s, self.t, indexing='ij')
         self.s_s_wind = S + np.real(s_s_wind_full)[:self.n_s, :self.n_t]
         
-        t_s_wind_full = np.fft.ifft2(t_prime_hat, s=(self.n_s, self.n_t))
+        t_s_wind_full = np.fft.ifft2(t_prime_hat)
         self.t_s_wind = T + np.real(t_s_wind_full)[:self.n_s, :self.n_t]
     
     def calculate_streamline(self, x_l0: float, y_l0: float, z_l0: float,
@@ -230,13 +237,13 @@ class VelocityCalculator:
         s_l : ndarray
             Horizontal distance along streamline
         """
-        from ..optimization.wind_path import wind_path
+        from ..wind_path import wind_path
         
         # Calculate stream surface
         self.calculate_stream_surface(z_l0, U, f_c, h_rho, is_first)
         
         # Calculate path in x-y plane using wind_path
-        x_bar_path, y_bar_path = wind_path(x_l0, y_l0, azimuth, x, y)
+        x_bar_path, y_bar_path, s_path, s_limits = wind_path(x_l0, y_l0, azimuth, x, y)
         
         # Convert to s-t coordinates
         azimuth_rad = np.deg2rad(azimuth)
