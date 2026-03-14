@@ -58,8 +58,11 @@ def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
     
     # Initialize output arrays
     ij_catch = []
-    ptr_catch = np.zeros(n_samples, dtype=int)
-    ptr_catch[0] = 0  # MATLAB uses 1-indexed pointers
+    # ptr_catch needs n_samples + 1 elements (like MATLAB)
+    # ptr_catch[k] is start index of sample k
+    # ptr_catch[k+1] is end index + 1 of sample k (or start of sample k+1)
+    ptr_catch = np.zeros(n_samples + 1, dtype=int)
+    ptr_catch[0] = 0  # First sample starts at index 0
     
     # Compute grid spacing
     dx = x[1] - x[0] if len(x) > 1 else 1.0
@@ -79,8 +82,7 @@ def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
         if sample_lc[k] == 'L':
             # Local water sample - no catchment needed
             # Append one node for sample to full list
-            if k < n_samples - 1:
-                ptr_catch[k + 1] = ptr_catch[k] + 1
+            ptr_catch[k + 1] = ptr_catch[k] + 1
             ij_catch.append((i0, j0))
             continue
         
@@ -131,8 +133,7 @@ def catchment_nodes(sample_x, sample_y, sample_lc, x, y, h_grid):
             k_c += 1
         
         # Append results to full list of catchment nodes
-        if k < n_samples - 1:
-            ptr_catch[k + 1] = ptr_catch[k] + n_c
+        ptr_catch[k + 1] = ptr_catch[k] + n_c
         
         ij_catch.extend(ij_catch_sample)
     
