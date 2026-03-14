@@ -214,6 +214,7 @@ def cool_warm(n_colors: int = 256) -> ListedColormap:
     """
     Cool-warm diverging colormap.
     
+    Matches MATLAB's coolwarm.m using Kenneth Moreland's color table.
     Good for data centered at zero (e.g., anomalies).
     
     Parameters
@@ -225,10 +226,41 @@ def cool_warm(n_colors: int = 256) -> ListedColormap:
     -------
     cmap : ListedColormap
         Cool-warm colormap
+    
+    References
+    ----------
+    .. [1] MATLAB OPI 3.7 - private/coolwarm.m (Mark Brandon, Yale University)
+    .. [2] Moreland, Kenneth, 2009, Diverging Color Maps for Scientific 
+           Visualization, in Proceedings of the 5th International Symposium on 
+           Visual Computing.
+    .. [3] http://www.kennethmoreland.com/color-maps/
     """
-    # Use matplotlib's coolwarm as base
-    from matplotlib import cm
-    return cm.get_cmap('coolwarm', n_colors)
+    from .coolwarm_data import COOLWARM_257
+    
+    n_base = COOLWARM_257.shape[0]  # 257 colors
+    
+    # MATLAB interpolation method:
+    # pp = (1:(m-1)/(size(c,1)-1):m)';
+    # map = interp1(pp, c, (1:m)');
+    # 
+    # This creates interpolation points from 1 to m (n_colors)
+    # with spacing that maps to the base colormap size
+    
+    # Create interpolation points (matching MATLAB)
+    m = n_colors
+    pp = np.linspace(1, m, n_base)
+    
+    # Target points
+    target = np.arange(1, m + 1)
+    
+    # Interpolate each RGB channel
+    red = np.interp(target, pp, COOLWARM_257[:, 0])
+    green = np.interp(target, pp, COOLWARM_257[:, 1])
+    blue = np.interp(target, pp, COOLWARM_257[:, 2])
+    
+    cmap_data = np.column_stack([red, green, blue])
+    
+    return ListedColormap(cmap_data, name='coolwarm')
 
 
 def create_centered_colormap(cmap_name: str = 'RdBu_r', n_colors: int = 256,
