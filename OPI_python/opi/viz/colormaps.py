@@ -128,14 +128,14 @@ def cmapscale(
             # Use upper half of colormap
             n_colors = cmap0.shape[0]
             indices = np.linspace((n_colors - 1) / 2, n_colors - 1, n_colors)
-            cmap0 = np.array([np.interp(i, range(n_colors), cmap0[:, c]) 
+            cmap0 = np.array([np.interp(indices, range(n_colors), cmap0[:, c]) 
                             for c in range(3)]).T
             z0 = None
         elif z0 >= z_max:
             # Use lower half of colormap
             n_colors = cmap0.shape[0]
             indices = np.linspace(0, (n_colors - 1) / 2, n_colors)
-            cmap0 = np.array([np.interp(i, range(n_colors), cmap0[:, c])
+            cmap0 = np.array([np.interp(indices, range(n_colors), cmap0[:, c])
                             for c in range(3)]).T
             z0 = None
     
