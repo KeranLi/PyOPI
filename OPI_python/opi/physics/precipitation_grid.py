@@ -65,14 +65,21 @@ def isotherm(TR, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z):
     z_bar_R = float(interp_z(TR))
     
     # Base-state environmental lapse rate at z_bar_R
-    interp_gamma_env = interp1d(z_bar, gamma_env, kind='linear', 
-                                 fill_value='extrapolate', bounds_error=False)
-    gamma_env_bar_R = float(interp_gamma_env(z_bar_R))
+    # Handle both scalar and array inputs for gamma
+    if np.isscalar(gamma_env) or len(np.atleast_1d(gamma_env)) == 1:
+        gamma_env_bar_R = float(np.atleast_1d(gamma_env)[0])
+    else:
+        interp_gamma_env = interp1d(z_bar, gamma_env, kind='linear', 
+                                     fill_value='extrapolate', bounds_error=False)
+        gamma_env_bar_R = float(interp_gamma_env(z_bar_R))
     
     # Base-state saturation lapse rate at z_bar_R
-    interp_gamma_sat = interp1d(z_bar, gamma_sat, kind='linear',
-                                 fill_value='extrapolate', bounds_error=False)
-    gamma_sat_bar_R = float(interp_gamma_sat(z_bar_R))
+    if np.isscalar(gamma_sat) or len(np.atleast_1d(gamma_sat)) == 1:
+        gamma_sat_bar_R = float(np.atleast_1d(gamma_sat)[0])
+    else:
+        interp_gamma_sat = interp1d(z_bar, gamma_sat, kind='linear',
+                                     fill_value='extrapolate', bounds_error=False)
+        gamma_sat_bar_R = float(interp_gamma_sat(z_bar_R))
     
     # Calculate perturbation height, z_prime, for the z_bar_R stream surface
     exponent = (1j * k_z + 1/(2*h_rho)) * z_bar_R
