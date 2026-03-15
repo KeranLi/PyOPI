@@ -143,38 +143,52 @@ def opi_calc_one_wind(run_file_path=None, solution_vector=None, verbose=True):
         print("="*35)
     
     # Load run file or use defaults
+    use_synthetic = False
     if run_file_path and os.path.exists(run_file_path):
-        run_data = load_run_file(run_file_path)
+        from ..io.run_file import parse_run_file
+        run_params = parse_run_file(run_file_path)
         run_dir = os.path.dirname(run_file_path)
         if verbose:
             print(f"Loading run file: {run_file_path}")
+        
+        data_path = run_params['data_path']
+        topo_file = run_params['topo_file']
+        r_tukey = run_params.get('r_tukey', 0.0)
+        sample_file = run_params.get('sample_file', None)
     else:
-        run_data = get_default_run_parameters()
+        run_params = None
         run_dir = os.getcwd()
+        data_path = os.path.join(run_dir, 'data')
+        topo_file = 'topography.mat'
+        r_tukey = 0.0
+        sample_file = None
+        use_synthetic = True  # No run file, use synthetic data
         if verbose:
-            print("No run file specified, using default parameters")
+            print("No run file specified, using synthetic data for demonstration")
     
-    if verbose:
-        print(f"Run title: {run_data['run_title']}")
-    
-    # Get data path
-    data_path = os.path.join(run_dir, run_data['data_path'])
+    if verbose and not use_synthetic:
+        if run_params:
+            print(f"Run title: {run_params.get('title', 'Untitled')}")
+        print(f"Loading data from: {data_path}")
+        print(f"  Topography file: {topo_file}")
     
     # Load input data (topography and samples)
-    if verbose:
+    if verbose and not use_synthetic:
         print("\nLoading input data...")
     
-    try:
-        input_data = get_input(
-            data_path=data_path,
-            topo_file=run_data['topography_file'],
-            r_tukey=run_data['r_tukey'],
-            sample_file=run_data['sample_file'] if run_data['sample_file'].lower() != 'no' else None,
-            sd_res_ratio=SD_RES_RATIO
-        )
-    except FileNotFoundError:
-        print(f"Topography file not found. Creating synthetic data for demonstration.")
+    if use_synthetic:
         input_data = create_synthetic_data()
+    else:
+        try:
+            input_data = get_input(
+                data_path=data_path,
+                topo_file=topo_file,
+                r_tukey=r_tukey,
+                sample_file=sample_file,
+                sd_res_ratio=SD_RES_RATIO
+            )
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"Could not load topography data: {e}")
     
     if verbose:
         print(f"Grid size: {input_data['h_grid'].shape}")
@@ -185,8 +199,8 @@ def opi_calc_one_wind(run_file_path=None, solution_vector=None, verbose=True):
     # Get solution vector
     if solution_vector is not None:
         beta = np.array(solution_vector)
-    elif run_data.get('solution') is not None:
-        beta = np.array(run_data['solution'])
+    elif run_params is not None and run_params.get('beta') is not None:
+        beta = np.array(run_params['beta'])
     else:
         # Default parameters
         beta = np.array([10.0, 90.0, 290.0, 0.25, 0.0, 1000.0, -5.0e-3, -2.0e-3, 0.7])
