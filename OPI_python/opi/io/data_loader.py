@@ -4,6 +4,7 @@ Input Data Loading Module
 This module handles loading of topography and sample data for OPI calculations.
 """
 
+import os
 import numpy as np
 import pandas as pd
 from scipy.io import loadmat
@@ -19,6 +20,8 @@ def grid_read(mat_file_path):
     and two matching vectors with lengths m and n, which correspond
     to the y and x grid vectors.
     
+    Supports both standard MAT files and MATLAB v7.3 (HDF5) format.
+    
     Parameters
     ----------
     mat_file_path : str
@@ -29,12 +32,115 @@ def grid_read(mat_file_path):
     x, y, z : ndarray
         Grid vectors x, y and the grid z
     """
+    if not os.path.exists(mat_file_path):
+        raise FileNotFoundError(f"MAT file not found: {mat_file_path}")
+    
+    # Try standard loadmat first
     try:
         mat_data = loadmat(mat_file_path)
-    except FileNotFoundError:
-        raise FileNotFoundError(f"MAT file not found: {mat_file_path}")
+        return _process_mat_data(mat_data)
+    except NotImplementedError as e:
+        # MATLAB v7.3 format (HDF5) - try h5py
+        if "HDF" in str(e) or "v7.3" in str(e):
+            return _read_hdf5_mat(mat_file_path)
+        raise
     except Exception as e:
+        # Check if it might be HDF5 format by examining file header
+        try:
+            with open(mat_file_path, 'rb') as f:
+                header = f.read(8)
+                if header.startswith(b'\x89HDF\r\n\x1a\n'):
+                    return _read_hdf5_mat(mat_file_path)
+        except:
+            pass
         raise ValueError(f"Error loading MAT file: {e}")
+
+
+def _read_hdf5_mat(mat_file_path):
+    """
+    Read MATLAB v7.3 format file using h5py.
+    """
+    try:
+        import h5py
+    except ImportError:
+        raise ImportError(
+            "MATLAB v7.3 format detected but h5py is not installed. "
+            "Install with: pip install h5py"
+        )
+    
+    try:
+        with h5py.File(mat_file_path, 'r') as f:
+            # Find all datasets in the file
+            datasets = {}
+            
+            def find_datasets(name, obj):
+                if isinstance(obj, h5py.Dataset):
+                    # Convert HDF5 reference path to simple name
+                    simple_name = name.split('/')[-1]
+                    datasets[simple_name] = np.array(obj)
+            
+            f.visititems(find_datasets)
+            
+            if len(datasets) < 3:
+                raise ValueError("MAT file must contain at least 3 numeric variables")
+            
+            return _process_hdf5_data(datasets)
+    except Exception as e:
+        raise ValueError(f"Error reading HDF5 MAT file: {e}")
+
+
+def _process_hdf5_data(datasets):
+    """
+    Process HDF5 datasets to extract x, y, z grid.
+    """
+    # Find the grid (largest 2D array)
+    grid_key = None
+    grid_size = 0
+    for key, value in datasets.items():
+        if value.ndim >= 2:
+            size = value.shape[0] * value.shape[1]
+            if size > grid_size:
+                grid_size = size
+                grid_key = key
+    
+    if grid_key is None:
+        raise ValueError("No 2D grid found in MAT file")
+    
+    z = datasets[grid_key]
+    n_y, n_x = z.shape
+    
+    # Find x and y vectors
+    x_key = None
+    y_key = None
+    
+    for key, value in datasets.items():
+        if key == grid_key:
+            continue
+        if value.ndim == 1:
+            value_len = len(value)
+        elif value.ndim == 2 and (value.shape[0] == 1 or value.shape[1] == 1):
+            value_len = max(value.shape)
+        else:
+            continue
+        
+        if value_len == n_x and x_key is None:
+            x_key = key
+        elif value_len == n_y and y_key is None:
+            y_key = key
+    
+    if x_key is None or y_key is None:
+        raise ValueError(f"Could not find matching grid vectors. Grid shape: {z.shape}")
+    
+    x = datasets[x_key].flatten()
+    y = datasets[y_key].flatten()
+    
+    return x, y, z
+
+
+def _process_mat_data(mat_data):
+    """
+    Process standard MAT file data to extract x, y, z grid.
+    """
     
     # Find numeric arrays in the file
     numeric_vars = {}
@@ -300,13 +406,27 @@ def get_input(data_path, topo_file, r_tukey=0.0, sample_file=None, sd_res_ratio=
         
         # Parse sample data
         # Excel column order: 1=Longitude, 2=Latitude, 3=Elevation, 4=d2H, 5=d18O, 6=Type
-        sample_lon = df.iloc[:, 0].values
-        sample_lat = df.iloc[:, 1].values
+        sample_lon = pd.to_numeric(df.iloc[:, 0], errors='coerce').values
+        sample_lat = pd.to_numeric(df.iloc[:, 1], errors='coerce').values
         # Column 2 (index 2) is Elevation - not used currently but read for compatibility
-        sample_elev = df.iloc[:, 2].values
-        sample_d2h = df.iloc[:, 3].values * 1e-3  # Convert permil to fraction
-        sample_d18o = df.iloc[:, 4].values * 1e-3
+        sample_elev = pd.to_numeric(df.iloc[:, 2], errors='coerce').values
+        sample_d2h = pd.to_numeric(df.iloc[:, 3], errors='coerce').values * 1e-3  # Convert permil to fraction
+        sample_d18o = pd.to_numeric(df.iloc[:, 4], errors='coerce').values * 1e-3
         sample_lc = df.iloc[:, 5].astype(str).str.upper().str[0].values
+        
+        # Remove rows with NaN values (failed conversion)
+        valid_mask = ~(np.isnan(sample_lon) | np.isnan(sample_lat) | 
+                      np.isnan(sample_d2h) | np.isnan(sample_d18o))
+        if not np.all(valid_mask):
+            n_invalid = np.sum(~valid_mask)
+            print(f"Warning: Skipping {n_invalid} samples with invalid numeric data")
+            sample_line = sample_line[valid_mask]
+            sample_lon = sample_lon[valid_mask]
+            sample_lat = sample_lat[valid_mask]
+            sample_elev = sample_elev[valid_mask]
+            sample_d2h = sample_d2h[valid_mask]
+            sample_d18o = sample_d18o[valid_mask]
+            sample_lc = sample_lc[valid_mask]
         
         # Check that samples lie within grid
         if np.any((lon[0] > sample_lon) | (lon[-1] < sample_lon) |
