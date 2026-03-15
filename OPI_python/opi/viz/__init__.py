@@ -9,6 +9,8 @@ from .maps import (
     plot_topography_map,
     plot_precipitation_map,
     plot_isotope_map,
+    plot_precipitation_source_map,
+    plot_two_wind_comparison,
     plot_result_maps
 )
 
@@ -47,6 +49,8 @@ __all__ = [
     'plot_topography_map',
     'plot_precipitation_map',
     'plot_isotope_map',
+    'plot_precipitation_source_map',
+    'plot_two_wind_comparison',
     'plot_result_maps',
     # Plots
     'plot_sample_comparison',
