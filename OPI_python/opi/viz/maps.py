@@ -271,6 +271,7 @@ def plot_precipitation_source_map(lon, lat, fraction_p_grid,
 def plot_two_wind_comparison(data, save_dir=None):
     """
     Create comparison maps for two-wind OPI results.
+    Matches MATLAB opiMaps_TwoWinds.m figure numbering.
     
     Parameters
     ----------
@@ -282,61 +283,135 @@ def plot_two_wind_comparison(data, save_dir=None):
     Returns
     -------
     list
-        List of created figures
+        List of saved figure paths
     """
+    import matplotlib.pyplot as plt
     figures = []
     
     lon = data['lon']
     lat = data['lat']
     
-    # Combined topography (same for both states)
-    if 'h_grid' in data:
-        fig, _ = plot_topography_map(lon, lat, data['h_grid'],
-                                     title='Topography - Two Wind Model')
-        figures.append(fig)
-        if save_dir:
-            fig.savefig(f'{save_dir}/map_topography.png', dpi=300)
+    # Create 2D coordinate grids for all plots
+    LON, LAT = np.meshgrid(lon, lat)
     
-    # State 1 precipitation
+    # Get reference grid shape for dimension checking
+    p_grid_shape = None
+    if 'p_grid' in data:
+        p_grid_shape = data['p_grid'].shape
+    elif 'p_grid_1' in data:
+        p_grid_shape = data['p_grid_1'].shape
+    
+    # Fig 01: Topography and sample locations
+    if 'h_grid' in data and p_grid_shape is not None:
+        h_grid = data['h_grid']
+        # Check dimensions match
+        if h_grid.shape == p_grid_shape:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            # Use masked array for ocean (elevation <= 0)
+            h_masked = np.where(h_grid > 0, h_grid, np.nan)
+            im = ax.pcolormesh(LON, LAT, h_masked, shading='auto', cmap='terrain')
+            ax.set_title('Fig. 1. Topography and Sample Locations', fontsize=14)
+            ax.set_xlabel('Longitude (deg)', fontsize=12)
+            ax.set_ylabel('Latitude (deg)', fontsize=12)
+            plt.colorbar(im, ax=ax, label='Elevation (m)')
+            if save_dir:
+                path = f'{save_dir}/fig01_topography.png'
+                fig.savefig(path, dpi=300, bbox_inches='tight')
+                figures.append(path)
+            plt.close()
+        else:
+            print(f"Warning: h_grid shape {h_grid.shape} doesn't match pGrid shape {p_grid_shape}, skipping Fig 01")
+    
+    # Fig 02: Precipitation rate (combined)
+    if 'p_grid' in data:
+        fig, ax = plt.subplots(figsize=(12, 8))
+        # Convert from kg/m^2/s to mm/hr
+        p_mmhr = data['p_grid'] * 3.6e3
+        im = ax.pcolormesh(LON, LAT, p_mmhr, shading='auto', cmap='Blues')
+        ax.set_title('Fig. 2. Precipitation Rate', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='mm/hr')
+        if save_dir:
+            path = f'{save_dir}/fig02_precipitation.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
+    
+    # Fig 10: Precipitation rate, state #1
     if 'p_grid_1' in data:
-        fig, _ = plot_precipitation_map(lon, lat, data['p_grid_1'],
-                                        title='Precipitation Rate - State #1')
-        figures.append(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        p_mmhr = data['p_grid_1'] * 3.6e3
+        im = ax.pcolormesh(LON, LAT, p_mmhr, shading='auto', cmap='Blues')
+        ax.set_title('Fig. 10. Precipitation Rate - State #1', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='mm/hr')
         if save_dir:
-            fig.savefig(f'{save_dir}/map_precipitation_state1.png', dpi=300)
+            path = f'{save_dir}/fig10_precipitation_state1.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
     
-    # State 2 precipitation
+    # Fig 11: Precipitation rate, state #2
     if 'p_grid_2' in data:
-        fig, _ = plot_precipitation_map(lon, lat, data['p_grid_2'],
-                                        title='Precipitation Rate - State #2')
-        figures.append(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        p_mmhr = data['p_grid_2'] * 3.6e3
+        im = ax.pcolormesh(LON, LAT, p_mmhr, shading='auto', cmap='Blues')
+        ax.set_title('Fig. 11. Precipitation Rate - State #2', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='mm/hr')
         if save_dir:
-            fig.savefig(f'{save_dir}/map_precipitation_state2.png', dpi=300)
+            path = f'{save_dir}/fig11_precipitation_state2.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
     
-    # Combined precipitation
-    if 'p_grid_1' in data and 'p_grid_2' in data:
-        p_combined = data['p_grid_1'] + data['p_grid_2']
-        fig, _ = plot_precipitation_map(lon, lat, p_combined,
-                                        title='Precipitation Rate - Combined')
-        figures.append(fig)
+    # Fig 07: Predicted d2H (combined)
+    if 'd2h_grid' in data:
+        fig, ax = plt.subplots(figsize=(12, 8))
+        d2h_permil = data['d2h_grid'] * 1000
+        im = ax.pcolormesh(lon, lat, d2h_permil, shading='auto', cmap='coolwarm')
+        ax.set_title('Fig. 7. Predicted d2H', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='d2H (permil)')
         if save_dir:
-            fig.savefig(f'{save_dir}/map_precipitation_combined.png', dpi=300)
+            path = f'{save_dir}/fig07_d2h.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
     
-    # State 1 isotopes
+    # Fig 14: Predicted d2H, state #1
     if 'd2h_grid_1' in data:
-        fig, _ = plot_isotope_map(lon, lat, data['d2h_grid_1'],
-                                  title_prefix='State #1')
-        figures.append(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        d2h_permil = data['d2h_grid_1'] * 1000
+        im = ax.pcolormesh(lon, lat, d2h_permil, shading='auto', cmap='coolwarm')
+        ax.set_title('Fig. 14. Predicted d2H - State #1', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='d2H (permil)')
         if save_dir:
-            fig.savefig(f'{save_dir}/map_isotopes_state1.png', dpi=300)
+            path = f'{save_dir}/fig14_d2h_state1.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
     
-    # State 2 isotopes
+    # Fig 15: Predicted d2H, state #2
     if 'd2h_grid_2' in data:
-        fig, _ = plot_isotope_map(lon, lat, data['d2h_grid_2'],
-                                  title_prefix='State #2')
-        figures.append(fig)
+        fig, ax = plt.subplots(figsize=(12, 8))
+        d2h_permil = data['d2h_grid_2'] * 1000
+        im = ax.pcolormesh(lon, lat, d2h_permil, shading='auto', cmap='coolwarm')
+        ax.set_title('Fig. 15. Predicted d2H - State #2', fontsize=14)
+        ax.set_xlabel('Longitude (deg)', fontsize=12)
+        ax.set_ylabel('Latitude (deg)', fontsize=12)
+        plt.colorbar(im, ax=ax, label='d2H (permil)')
         if save_dir:
-            fig.savefig(f'{save_dir}/map_isotopes_state2.png', dpi=300)
+            path = f'{save_dir}/fig15_d2h_state2.png'
+            fig.savefig(path, dpi=300, bbox_inches='tight')
+            figures.append(path)
+        plt.close()
     
     return figures
 
