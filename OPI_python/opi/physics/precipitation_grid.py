@@ -83,6 +83,12 @@ def isotherm(TR, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z):
     
     # Calculate perturbation height, z_prime, for the z_bar_R stream surface
     exponent = (1j * k_z + 1/(2*h_rho)) * z_bar_R
+    
+    # Clip exponent to avoid overflow in exp (max safe value for float64 is ~709)
+    exponent_real = np.clip(exponent.real, -700, 700)
+    exponent_imag = exponent.imag
+    exponent = exponent_real + 1j * exponent_imag
+    
     z_prime = np.fft.ifft2(h_hat * np.exp(exponent))
     z_prime = np.real(z_prime)  # symmetric, should be real
     z_prime = z_prime[:n_s, :n_t]

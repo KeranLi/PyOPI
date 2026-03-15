@@ -219,6 +219,9 @@ def calculate_cloud_water_section(
     # Calculate height along path of the 248 K (-25°C) and 268 K (-5°C) isotherms
     # Note: MATLAB uses Celsius in comments but function receives Kelvin
     z_248 = isotherm(248.0, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z)
+    # isotherm returns (n_s, n_t), but we need (n_t, n_s) for RegularGridInterpolator
+    if z_248.shape != (len(t), len(s)):
+        z_248 = z_248.T
     interp_248 = RegularGridInterpolator(
         (t, s), z_248,
         method='linear', bounds_error=False, fill_value=np.nan
@@ -226,6 +229,8 @@ def calculate_cloud_water_section(
     z_248_path = interp_248(np.column_stack([t_path, s_path]))
     
     z_268 = isotherm(268.0, z_bar, T, gamma_env, gamma_sat, h_rho, n_s, n_t, h_hat, k_z)
+    if z_268.shape != (len(t), len(s)):
+        z_268 = z_268.T
     interp_268 = RegularGridInterpolator(
         (t, s), z_268,
         method='linear', bounds_error=False, fill_value=np.nan

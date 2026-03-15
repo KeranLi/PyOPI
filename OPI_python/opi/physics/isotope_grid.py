@@ -189,8 +189,13 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
     aEvapWind = a1EvapWind * rHWind / (1 - a0EvapWind * (1 - rHWind))
     
     # Calculate exponent for integration of evaporative fractionation
-    uEvap_d2HWind = 1.0 / (a0EvapWind * (1 - rHWind)) - 1
-    uEvap_d2HWind[rHWind == 1] = 0
+    # Avoid divide by zero when rHWind == 1
+    with np.errstate(divide='ignore', invalid='ignore'):
+        uEvap_d2HWind = np.where(
+            rHWind >= 0.999999,  # Avoid numerical issues near rH=1
+            0.0,
+            1.0 / (a0EvapWind * (1 - rHWind)) - 1
+        )
     
     # Combine to get fractionation factor for residual precipitation
     aResidualVaporWind = (fPWind**uEvap_d2HWind * aPrecWind
@@ -271,8 +276,14 @@ def isotope_grid(s, t, Sxy, Txy, lat, lat0, hWind, fMWind, rHWind, fPWind,
     a1EvapWind = fractionation_oxygen(TLSWind)
     a0EvapWind = a1EvapWind * DRatio18O**(-n)
     aEvapWind = a1EvapWind * rHWind / (1 - a0EvapWind * (1 - rHWind))
-    uEvap_d18OWind = 1.0 / (a0EvapWind * (1 - rHWind)) - 1
-    uEvap_d18OWind[rHWind == 1] = 0
+    
+    # Avoid divide by zero when rHWind == 1
+    with np.errstate(divide='ignore', invalid='ignore'):
+        uEvap_d18OWind = np.where(
+            rHWind >= 0.999999,  # Avoid numerical issues near rH=1
+            0.0,
+            1.0 / (a0EvapWind * (1 - rHWind)) - 1
+        )
     
     # Combine to get fractionation factor for residual precipitation
     aResidualVaporWind = (fPWind**uEvap_d18OWind * aPrecWind
