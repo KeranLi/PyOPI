@@ -10,12 +10,14 @@ Commands:
     fit-two     Fit two-wind model parameters
     maps-one    Generate maps for one-wind results
     maps-two    Generate maps for two-wind results
+    cross-section  Generate cross-section plots (Fig 5/6)
     version     Print version information
 
 Examples:
     python -m opi run runs/run001/run001.run
     python -m opi fit-one runs/run001/run001.run
     python -m opi maps-one runs/run001/opiCalc_OneWind_Results.mat
+    python -m opi cross-section runs/run001/opiCalc_TwoWinds_Results.mat
 """
 
 import sys
@@ -83,6 +85,16 @@ Examples:
     maps_two_parser.add_argument('-o', '--output-dir', help='Output directory for figures')
     maps_two_parser.add_argument('--show', action='store_true',
                                 help='Display plots interactively')
+    
+    # Cross-section command
+    cs_parser = subparsers.add_parser('cross-section', help='Generate cross-section plots (Fig 5/6)')
+    cs_parser.add_argument('results_file', help='Path to opiCalc_TwoWinds_Results.mat')
+    cs_parser.add_argument('-o', '--output-dir', help='Output directory (default: same as results file)')
+    cs_parser.add_argument('--state', type=int, choices=[1, 2], help='Plot only specific state (1 or 2)')
+    cs_parser.add_argument('--max-grid-size', type=int, default=1500,
+                          help='Maximum grid size for FFT (default: 1500, lower = less memory)')
+    cs_parser.add_argument('--show', action='store_true', help='Display plots interactively')
+    cs_parser.add_argument('-v', '--verbose', action='store_true', help='Print detailed progress')
     
     # Version command
     subparsers.add_parser('version', help='Print version information')
@@ -168,6 +180,23 @@ Examples:
             verbose=True
         )
         print(f"\nGenerated {len(files)} figure(s)")
+        sys.exit(0)
+    
+    elif args.command == 'cross-section':
+        from .opi_cross_section import main as cross_section_main
+        # Convert args to sys.argv format for the sub-main
+        sys.argv = ['opi_cross_section', args.results_file]
+        if args.output_dir:
+            sys.argv.extend(['-o', args.output_dir])
+        if args.state:
+            sys.argv.extend(['--state', str(args.state)])
+        if args.max_grid_size != 1500:
+            sys.argv.extend(['--max-grid-size', str(args.max_grid_size)])
+        if args.show:
+            sys.argv.append('--show')
+        if args.verbose:
+            sys.argv.append('-v')
+        cross_section_main()
         sys.exit(0)
 
 
