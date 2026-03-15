@@ -7,7 +7,7 @@ Contains optimization algorithms:
 """
 
 from .crs3 import fmin_crs3, CRS3Optimizer
-from .wind_path import wind_path
+from ..wind_path import wind_path
 
 __all__ = [
     'fmin_crs3',
