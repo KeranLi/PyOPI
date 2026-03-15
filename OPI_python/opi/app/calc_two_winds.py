@@ -49,30 +49,47 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
     # Load or create input data
     if run_file_path:
         import os
+        from ..io.run_file import parse_run_file
+        
         run_dir = os.path.dirname(run_file_path) if os.path.dirname(run_file_path) else os.getcwd()
-        data_path = os.path.join(run_dir, 'data')
         
-        if verbose:
-            print(f"Loading data from: {data_path}")
-        
+        # Parse run file to get data path and topo file
         try:
-            input_data = get_input(
-                data_path=data_path,
-                topo_file='topography.mat',
-                r_tukey=0.0,
-                sample_file=None,
-                sd_res_ratio=SD_RES_RATIO
-            )
-        except FileNotFoundError:
-            input_data = create_synthetic_input()
+            run_params = parse_run_file(run_file_path)
+            data_path = run_params['data_path']
+            topo_file = run_params['topo_file']
+            r_tukey = run_params.get('r_tukey', 0.0)
+            sample_file = run_params.get('sample_file', None)
+            use_synthetic = False
+        except Exception as e:
+            # Fallback to synthetic if parsing fails
             if verbose:
-                print("Using synthetic data for demonstration")
+                print(f"Warning: Could not parse run file ({e}), using synthetic data")
+            input_data = create_synthetic_input()
+            use_synthetic = True
+        
+        if not use_synthetic:
+            if verbose:
+                print(f"Loading data from: {data_path}")
+                print(f"  Topography file: {topo_file}")
+            
+            try:
+                input_data = get_input(
+                    data_path=data_path,
+                    topo_file=topo_file,
+                    r_tukey=r_tukey,
+                    sample_file=sample_file,
+                    sd_res_ratio=SD_RES_RATIO
+                )
+            except FileNotFoundError as e:
+                raise FileNotFoundError(f"Could not load topography data: {e}")
     else:
         input_data = create_synthetic_input()
         if verbose:
-            print("No run file specified, using default parameters for demonstration")
+            print("No run file specified, using synthetic data for demonstration")
     
     # Default solution vector if not provided
+    # Format matches run file: [9 wind1 params, fraction, 9 wind2 params]
     if solution_vector is None:
         solution_vector = np.array([
             # First wind field (9 parameters)
@@ -86,6 +103,9 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             -2.0e-3,   # d_d2h0_d_lat_1: d2H lat gradient 1
             0.7,       # f_p0_1: Residual precip 1
             
+            # Mixture parameter (1 parameter)
+            0.5,       # frac2: Fraction of second wind field
+            
             # Second wind field (9 parameters)
             12.0,      # U2: Wind speed 2 (m/s)
             270.0,     # az2: Azimuth 2 (degrees from North)
@@ -96,9 +116,6 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             -8.0e-3,   # d2h0_2: d2H base 2
             -1.5e-3,   # d_d2h0_d_lat_2: d2H lat gradient 2
             0.75,      # f_p0_2: Residual precip 2
-            
-            # Mixture parameter (1 parameter)
-            0.5        # frac2: Fraction of second wind field
         ])
     else:
         solution_vector = np.array(solution_vector)
@@ -107,9 +124,12 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
         print(f"Solution vector has {len(solution_vector)} parameters as expected for two-wind model")
     
     # Split solution vector into components
-    sol1 = solution_vector[0:9]   # First wind field parameters
-    sol2 = solution_vector[9:18]  # Second wind field parameters
-    frac2 = solution_vector[18]   # Fraction of second wind field
+    # Run file format: [U1, Az1, T0_1, M1, kappa1, tau_c1, d2h0_1, d_d2h0_d_lat_1, f_p0_1,  (9 params)
+    #                   fraction,  (1 param)
+    #                   U2, Az2, T0_2, M2, kappa2, tau_c2, d2h0_2, d_d2h0_d_lat_2, f_p0_2]  (9 params)
+    sol1 = solution_vector[0:9]    # First wind field parameters
+    frac2 = solution_vector[9]     # Fraction of second wind field (index 9)
+    sol2 = solution_vector[10:19]  # Second wind field parameters (indices 10-18)
     
     if verbose:
         print(f"\nStarting two-wind calculations with parameters:")
@@ -174,12 +194,27 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             is_fit=False
         )
         
-        # Extract precipitation and isotope grids
+        # Extract all results from calc_one_wind (25 return values)
+        # Returns: chi_r2, nu, std_residuals, z_bar, T, gamma_env, gamma_sat, gamma_ratio,
+        #          rho_s0, h_s, rho0, h_rho, d18o0, d_d18o0_d_lat, tau_f, p_grid, f_m_grid, r_h_grid,
+        #          evap_d2h_grid, u_evap_d2h_grid, evap_d18o_grid, u_evap_d18o_grid,
+        #          d2h_grid, d18o_grid, i_wet, d2h_pred, d18o_pred
         precip1 = result1[16]  # p_grid
-        precip2 = result2[16]
-        
+        f_m_grid1 = result1[17]  # moisture ratio
+        r_h_grid1 = result1[18]  # relative humidity
+        d18o_grid1 = result1[23]  # d18O
         iso1 = result1[22]  # d2h_grid
+        # Additional variables for visualization
+        T1 = result1[4]  # Temperature profile
+        gamma_sat1 = result1[6]  # Saturation lapse rate
+        
+        precip2 = result2[16]
+        f_m_grid2 = result2[17]
+        r_h_grid2 = result2[18]
+        d18o_grid2 = result2[23]
         iso2 = result2[22]
+        T2 = result2[4]
+        gamma_sat2 = result2[6]
         
         # Combine results according to the mixing fraction
         # Weighted combination of precipitation
@@ -190,6 +225,13 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
         with np.errstate(divide='ignore', invalid='ignore'):
             total_isotope = (frac2 * precip2 * iso2 + (1 - frac2) * precip1 * iso1) / total_precip
             total_isotope = np.where(total_precip > 0, total_isotope, 0)
+        
+        # Calculate precipitation source fraction (fraction from wind 1)
+        # This is Fig 09 in MATLAB
+        with np.errstate(divide='ignore', invalid='ignore'):
+            fraction_p_grid = np.where(total_precip > 0, 
+                                       (1 - frac2) * precip1 / total_precip, 
+                                       0.5)
         
         if verbose:
             print(f"\nTwo-wind calculations completed successfully")
@@ -223,6 +265,10 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             'tau_f_2': safe_float(result2[15])
         }
         
+        # Calculate surface temperature grids (for visualization)
+        T_grid_1 = T1[0] - gamma_sat1[0] * input_data['h_grid'] if len(T1) > 0 else None
+        T_grid_2 = T2[0] - gamma_sat2[0] * input_data['h_grid'] if len(T2) > 0 else None
+        
         return {
             'solution_params': solution_params,
             'derived_params': derived_params,
@@ -232,6 +278,16 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             'isotope1': iso1,
             'precipitation2': precip2,
             'isotope2': iso2,
+            'd18o_grid': frac2 * d18o_grid2 + (1 - frac2) * d18o_grid1,
+            'd18o_grid_1': d18o_grid1,
+            'd18o_grid_2': d18o_grid2,
+            'f_m_grid_1': f_m_grid1,
+            'f_m_grid_2': f_m_grid2,
+            'r_h_grid_1': r_h_grid1,
+            'r_h_grid_2': r_h_grid2,
+            'T_grid_1': T_grid_1,  # Surface temperature
+            'T_grid_2': T_grid_2,
+            'fraction_p_grid': fraction_p_grid,  # Fig 09: precipitation source
             'x': input_data['x'],
             'y': input_data['y'],
             'h_grid': input_data['h_grid'],
@@ -247,13 +303,21 @@ def opi_calc_two_winds(run_file_path=None, solution_vector=None, verbose=True):
             import traceback
             traceback.print_exc()
         
-        # Return fallback
+        # Return fallback with all expected keys
         h_shape = input_data['h_grid'].shape
+        nan_grid = np.full(h_shape, np.nan)
         return {
             'solution_params': {},
             'derived_params': {},
-            'precipitation': np.full(h_shape, np.nan),
-            'isotope': np.full(h_shape, np.nan),
+            'precipitation': nan_grid,
+            'isotope': nan_grid,
+            'precipitation1': nan_grid,
+            'isotope1': nan_grid,
+            'precipitation2': nan_grid,
+            'isotope2': nan_grid,
+            'x': input_data['x'],
+            'y': input_data['y'],
+            'h_grid': input_data['h_grid'],
             'misc': {'error': str(e)}
         }
 
