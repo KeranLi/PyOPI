@@ -5,19 +5,28 @@ Usage:
     python -m opi <command> [options]
 
 Commands:
-    run         Run simulation from .run file
-    fit-one     Fit one-wind model parameters
-    fit-two     Fit two-wind model parameters
-    maps-one    Generate maps for one-wind results
-    maps-two    Generate maps for two-wind results
-    cross-section  Generate cross-section plots (Fig 5/6)
-    version     Print version information
+    run              Run simulation from .run file
+    fit-one          Fit one-wind model parameters
+    fit-two          Fit two-wind model parameters
+    maps-one         Generate maps for one-wind results
+    maps-two         Generate maps for two-wind results
+    
+    Cross-section commands:
+    cross-section        Generate cross-section with both d2H and d18O (4 panels)
+    cross-section-d2h    Generate cross-section with d2H only (3 panels)
+    cross-section-d18o   Generate cross-section with d18O only (3 panels)
+    
+    version          Print version information
 
 Examples:
     python -m opi run runs/run001/run001.run
     python -m opi fit-one runs/run001/run001.run
     python -m opi maps-one runs/run001/opiCalc_OneWind_Results.mat
+    
+    # Cross-section examples
     python -m opi cross-section runs/run001/opiCalc_TwoWinds_Results.mat
+    python -m opi cross-section-d2h runs/run001/opiCalc_TwoWinds_Results.mat
+    python -m opi cross-section-d18o runs/run001/opiCalc_TwoWinds_Results.mat
 """
 
 import sys
@@ -41,6 +50,11 @@ Examples:
   
   # Generate maps
   python -m opi maps-one runs/run001/opiCalc_OneWind_Results.mat
+  
+  # Generate cross-sections
+  python -m opi cross-section runs/run001/opiCalc_TwoWinds_Results.mat
+  python -m opi cross-section-d2h runs/run001/opiCalc_TwoWinds_Results.mat
+  python -m opi cross-section-d18o runs/run001/opiCalc_TwoWinds_Results.mat
         """
     )
     
@@ -86,8 +100,9 @@ Examples:
     maps_two_parser.add_argument('--show', action='store_true',
                                 help='Display plots interactively')
     
-    # Cross-section command
-    cs_parser = subparsers.add_parser('cross-section', help='Generate cross-section plots (Fig 5/6)')
+    # Cross-section command (COMBINED - both d2H and d18O)
+    cs_parser = subparsers.add_parser('cross-section', 
+                                     help='Generate cross-section with both d2H and d18O (4 panels)')
     cs_parser.add_argument('results_file', help='Path to opiCalc_TwoWinds_Results.mat')
     cs_parser.add_argument('-o', '--output-dir', help='Output directory (default: same as results file)')
     cs_parser.add_argument('--state', type=int, choices=[1, 2], help='Plot only specific state (1 or 2)')
@@ -95,6 +110,28 @@ Examples:
                           help='Maximum grid size for FFT (default: 1500, lower = less memory)')
     cs_parser.add_argument('--show', action='store_true', help='Display plots interactively')
     cs_parser.add_argument('-v', '--verbose', action='store_true', help='Print detailed progress')
+    
+    # Cross-section d2H command (d2H only)
+    cs_d2h_parser = subparsers.add_parser('cross-section-d2h', 
+                                         help='Generate cross-section with d2H only (hydrogen isotopes, 3 panels)')
+    cs_d2h_parser.add_argument('results_file', help='Path to opiCalc_TwoWinds_Results.mat')
+    cs_d2h_parser.add_argument('-o', '--output-dir', help='Output directory (default: same as results file)')
+    cs_d2h_parser.add_argument('--state', type=int, choices=[1, 2], help='Plot only specific state (1 or 2)')
+    cs_d2h_parser.add_argument('--max-grid-size', type=int, default=1500,
+                              help='Maximum grid size for FFT (default: 1500)')
+    cs_d2h_parser.add_argument('--show', action='store_true', help='Display plots interactively')
+    cs_d2h_parser.add_argument('-v', '--verbose', action='store_true', help='Print detailed progress')
+    
+    # Cross-section d18O command (d18O only)
+    cs_d18o_parser = subparsers.add_parser('cross-section-d18o', 
+                                          help='Generate cross-section with d18O only (oxygen isotopes, 3 panels)')
+    cs_d18o_parser.add_argument('results_file', help='Path to opiCalc_TwoWinds_Results.mat')
+    cs_d18o_parser.add_argument('-o', '--output-dir', help='Output directory (default: same as results file)')
+    cs_d18o_parser.add_argument('--state', type=int, choices=[1, 2], help='Plot only specific state (1 or 2)')
+    cs_d18o_parser.add_argument('--max-grid-size', type=int, default=1500,
+                               help='Maximum grid size for FFT (default: 1500)')
+    cs_d18o_parser.add_argument('--show', action='store_true', help='Display plots interactively')
+    cs_d18o_parser.add_argument('-v', '--verbose', action='store_true', help='Print detailed progress')
     
     # Version command
     subparsers.add_parser('version', help='Print version information')
@@ -183,8 +220,25 @@ Examples:
         sys.exit(0)
     
     elif args.command == 'cross-section':
+        # COMBINED version - both d2H and d18O
+        from .opi_cross_section_combined import main as cross_section_combined_main
+        sys.argv = ['opi_cross_section_combined', args.results_file]
+        if args.output_dir:
+            sys.argv.extend(['-o', args.output_dir])
+        if args.state:
+            sys.argv.extend(['--state', str(args.state)])
+        if args.max_grid_size != 1500:
+            sys.argv.extend(['--max-grid-size', str(args.max_grid_size)])
+        if args.show:
+            sys.argv.append('--show')
+        if args.verbose:
+            sys.argv.append('-v')
+        cross_section_combined_main()
+        sys.exit(0)
+    
+    elif args.command == 'cross-section-d2h':
+        # d2H only version (original)
         from .opi_cross_section import main as cross_section_main
-        # Convert args to sys.argv format for the sub-main
         sys.argv = ['opi_cross_section', args.results_file]
         if args.output_dir:
             sys.argv.extend(['-o', args.output_dir])
@@ -197,6 +251,23 @@ Examples:
         if args.verbose:
             sys.argv.append('-v')
         cross_section_main()
+        sys.exit(0)
+    
+    elif args.command == 'cross-section-d18o':
+        # d18O only version
+        from .opi_cross_section_d18o import main as cross_section_d18o_main
+        sys.argv = ['opi_cross_section_d18o', args.results_file]
+        if args.output_dir:
+            sys.argv.extend(['-o', args.output_dir])
+        if args.state:
+            sys.argv.extend(['--state', str(args.state)])
+        if args.max_grid_size != 1500:
+            sys.argv.extend(['--max-grid-size', str(args.max_grid_size)])
+        if args.show:
+            sys.argv.append('--show')
+        if args.verbose:
+            sys.argv.append('-v')
+        cross_section_d18o_main()
         sys.exit(0)
 
 
