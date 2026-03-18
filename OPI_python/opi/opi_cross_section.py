@@ -58,6 +58,8 @@ def extract_parameters(results):
     data = {}
     
     # Basic grids
+    # NOTE: load_matlab_results already transposes h5py data to match MATLAB orientation
+    # pGrid from h5py is already in (lat, lon) = (3560, 5748) order
     if 'pGrid' in results:
         data['p_grid'] = results['pGrid']
     if 'pGrid_1' in results:
@@ -148,7 +150,7 @@ def extract_parameters(results):
 
 
 def load_topography(data, results_file):
-    """Load topography from run file if not in results."""
+    """Load topography and coordinates from run file if not in results."""
     from .io.run_file import parse_run_file
     from .io.data_loader import get_input
     
@@ -177,7 +179,7 @@ def load_topography(data, results_file):
         print(f"  No .run file found in any of:")
         for dir_path in possible_dirs:
             print(f"    - {os.path.abspath(dir_path)}")
-        return None
+        return None, None, None, None, None
     
     print(f"  Found run file: {run_file_path}")
     
@@ -192,12 +194,18 @@ def load_topography(data, results_file):
             r_tukey=0.0,
             sample_file=None
         )
-        return input_data['h_grid']
+        return (
+            input_data['h_grid'],
+            input_data['lon'],
+            input_data['lat'],
+            input_data['x'],
+            input_data['y']
+        )
     except Exception as e:
         print(f"  Error loading topography: {e}")
         import traceback
         traceback.print_exc()
-        return None
+        return None, None, None, None, None
 
 
 def downsample_grid(h_grid, x, y, factor):
@@ -265,33 +273,43 @@ def calculate_cross_section(data, state_num, max_grid_size=1500, verbose=True):
         xy_limits = None
     
     # Downsample if needed
+    # NOTE: wind_grid rotates the grid, which can increase dimensions by up to sqrt(2)
+    # We need to be more conservative with max_grid_size to avoid memory issues
+    ROTATION_FACTOR = 1.5  # Safety factor for grid rotation
+    effective_max_size = int(max_grid_size / ROTATION_FACTOR)
+    
     h_grid = data['h_grid']
     ny, nx = h_grid.shape
+    
+    # Save original coordinates for precipitation grid interpolation
+    x_orig, y_orig = x, y
     
     # Check if x/y match h_grid dimensions correctly and swap if needed
     # We want x to match columns (nx) and y to match rows (ny)
     if len(x) == nx and len(y) == ny:
         # x matches columns, y matches rows - correct convention
         if verbose:
-            print(f"  Coordinate check: x matches columns ({nx}), y matches rows ({ny}) - correct")
+            print(f"  Coordinate check for h_grid: x matches columns ({nx}), y matches rows ({ny}) - correct")
     elif len(x) == ny and len(y) == nx:
         # x matches rows, y matches columns - need to swap
         if verbose:
-            print(f"  Coordinate check: swapping x and y (x was {len(x)}, y was {len(y)})")
+            print(f"  Coordinate check for h_grid: swapping x and y (x was {len(x)}, y was {len(y)})")
         x, y = y, x
     
     if verbose:
         print(f"  Coordinates: x={len(x)}, y={len(y)}, h_grid={h_grid.shape}")
     
-    factor = max(1, int(np.ceil(max(nx, ny) / max_grid_size)))
+    factor = max(1, int(np.ceil(max(nx, ny) / effective_max_size)))
     
     if factor > 1:
         if verbose:
-            print(f"  Down sampling grid by factor {factor} ({nx}x{ny} -> {nx//factor}x{ny//factor})")
+            print(f"  Down sampling grid by factor {factor} ({nx}x{ny} -> {nx//factor}x{ny//factor}, effective_max={effective_max_size})")
         h_grid_ds, x_ds, y_ds = downsample_grid(h_grid, x, y, factor)
         if verbose:
             print(f"  Downsampled: h_grid_ds={h_grid_ds.shape}, x_ds={len(x_ds)}, y_ds={len(y_ds)}")
     else:
+        if verbose:
+            print(f"  Grid size {nx}x{ny} within limits")
         h_grid_ds, x_ds, y_ds = h_grid, x, y
     
     # Ensure grid orientation matches coordinates
@@ -354,14 +372,25 @@ def calculate_cross_section(data, state_num, max_grid_size=1500, verbose=True):
         raise
     
     # Interpolate precipitation and d2H
-    p_interp = RegularGridInterpolator((lat, lon), data[f'p_grid_{state_num}'], 
-                                       method='linear', bounds_error=False, fill_value=0)
-    lon_path, lat_path = xy2lonlat(x_path, y_path, lon0, lat0)
-    p_section = p_interp(np.column_stack([lat_path, lon_path]))
+    # NOTE: Use original projection coordinates (x_orig, y_orig) for precipitation grids
+    # because pGrid and d2HGrid are defined on the original x, y grid from MATLAB results
     
-    d2h_interp = RegularGridInterpolator((lat, lon), data[f'd2h_grid_{state_num}'],
+    # If coordinates were swapped for h_grid, swap path coordinates back for p_grid
+    if len(x_orig) == len(y) and len(y_orig) == len(x):
+        y_path_p, x_path_p = x_path, y_path
+    else:
+        y_path_p, x_path_p = y_path, x_path
+    
+    p_interp = RegularGridInterpolator((y_orig, x_orig), data[f'p_grid_{state_num}'], 
+                                       method='linear', bounds_error=False, fill_value=0)
+    p_section = p_interp(np.column_stack([y_path_p, x_path_p]))
+    
+    d2h_interp = RegularGridInterpolator((y_orig, x_orig), data[f'd2h_grid_{state_num}'],
                                          method='linear', bounds_error=False, fill_value=0)
-    d2h_section = d2h_interp(np.column_stack([lat_path, lon_path]))
+    d2h_section = d2h_interp(np.column_stack([y_path_p, x_path_p]))
+    
+    # Calculate base d2H using latitude
+    lon_path, lat_path = xy2lonlat(x_path_p, y_path_p, lon0, lat0)
     d2h0_section = d2h0 + dd2h0_dlat * (lat_path - lat0)
     
     # Precipitation lines
@@ -473,12 +502,24 @@ Examples:
     data = extract_parameters(results)
     
     # Load topography if needed
+    # NOTE: Keep coordinates from MATLAB results, only load h_grid from run file
+    # because get_input coordinates may have different ordering than MATLAB results
     if 'h_grid' not in data or data['h_grid'] is None:
         print("Loading topography from run file...")
-        data['h_grid'] = load_topography(data, args.results_file)
-        if data['h_grid'] is None:
+        h_grid, lon, lat, x, y = load_topography(data, args.results_file)
+        if h_grid is None:
             print("Error: Could not load topography")
             sys.exit(1)
+        data['h_grid'] = h_grid
+        # Only use run file coordinates if MATLAB results don't have them
+        if 'lon' not in data or data['lon'] is None:
+            data['lon'] = lon
+        if 'lat' not in data or data['lat'] is None:
+            data['lat'] = lat
+        if 'x' not in data or data['x'] is None:
+            data['x'] = x
+        if 'y' not in data or data['y'] is None:
+            data['y'] = y
     
     # Check required data
     required = ['x', 'y', 'lon', 'lat', 'h_grid', 'p_grid_1', 'p_grid_2', 'd2h_grid_1', 'd2h_grid_2']
