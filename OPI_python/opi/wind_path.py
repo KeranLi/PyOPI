@@ -168,21 +168,33 @@ def wind_path(x_path0: float, y_path0: float, azimuth: float,
         x_path_int = x_path_int[[1, 0]]
         y_path_int = y_path_int[[1, 0]]
     
-    # Calculate distance along path, relative to x0, y0, and positive in wind direction
+    # Calculate distance along path, relative to x0, y0
+    # Matches MATLAB's calculation exactly
     if abs(x_path_int[1] - x_path_int[0]) > abs(y_path_int[1] - y_path_int[0]):
         s_path_endpoints = (x_path_int - x_path0) / np.sin(np.radians(azimuth))
     else:
         s_path_endpoints = (y_path_int - y_path0) / np.cos(np.radians(azimuth))
     
-    # Set nodes with a spacing close to d_s, and with first and last nodes
-    # located on the windward and leeward sides of the grid
+    # Ensure s_path increases in wind direction (from windward/negative to leeward/positive)
+    # When s_path_endpoints[1] < s_path_endpoints[0], we need to reverse both s and x,y
+    if s_path_endpoints[1] < s_path_endpoints[0]:
+        s_path_endpoints = s_path_endpoints[[1, 0]]
+        x_path_int = x_path_int[[1, 0]]
+        y_path_int = y_path_int[[1, 0]]
+    
+    # Set nodes with a spacing close to d_s
+    # MATLAB: nS = floor((sPath(2) - sPath(1))/dSPath) + 1;
     n_s = int(np.floor((s_path_endpoints[1] - s_path_endpoints[0]) / d_s_path)) + 1
+    if n_s < 2:
+        n_s = 2
     
     # Calculate x, y coordinates for nodes along wind path
+    # Now ordered from windward to leeward (increasing s)
     x_path = np.linspace(x_path_int[0], x_path_int[1], n_s)
     y_path = np.linspace(y_path_int[0], y_path_int[1], n_s)
     
     # s_path coordinates along wind path, with s_path = 0 at reference point
+    # Increasing from windward (negative) to leeward (positive)
     s_path = np.linspace(s_path_endpoints[0], s_path_endpoints[1], n_s)
     
     # Calculate s_limits
