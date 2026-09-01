@@ -7,6 +7,24 @@ For assimilation, call `run_assimilation(experimentRoot)` after generating
 calc-only OPI results. The experiment must contain
 `design/case_manifest.csv` and `calc_only/<case_id>/` result files.
 
+## Parallel computation
+
+The fitting code supports local CPU parallelism through MATLAB's Parallel
+Computing Toolbox. Set the second non-comment line of a `.run` file to `1` to
+let `fminCRS3` evaluate candidate solutions in parallel; leave it at `0` for
+serial execution. The bundled `runs/run033.run` template is configured for
+parallel execution. On Apple Silicon, start with four to eight process workers:
+
+```matlab
+addpath('OPI_programs')
+pool = opiStartParallelPool(6);
+```
+
+`opiStartParallelPool` reuses or resizes the local pool. The default worker
+count is conservative (`min(number_of_cores - 1, 8)`). Close it when finished
+with `delete(pool)`. Parallel execution requires Parallel Computing Toolbox;
+the core OPI model remains usable without it in serial mode.
+
 [![MATLAB](https://img.shields.io/badge/MATLAB-R2020b+-blue.svg)]()
 
 Original MATLAB implementation of the OPI (Orographic Precipitation and Isotopes) model.

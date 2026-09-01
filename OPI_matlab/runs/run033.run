@@ -2,7 +2,7 @@
 % 第1行（非注释）：runTitle
 run 33, Himalaya area, OPI 3.7, two wind, rTukey = 0.5, M<1, free fP, mu = 20
 % 第2行：parallelOption (0=串行, 1=并行)
-0
+1
 % 第3-4行：dataPath（两个路径，第一个不存在就用第二个，no表示跳过）
 F:\code\OPI-Orographic-Precipitation-and-Isotopes\OPI_matlab\data
 no
