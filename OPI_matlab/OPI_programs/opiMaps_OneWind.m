@@ -1,4 +1,4 @@
-function opiMaps_OneWind
+function opiMaps_OneWind(matFile_Results)
 % opiMaps_OneWind Creates map figures of OPI results as given by a
 % run file and an associated mat file with a "one-wind" solution.
 
@@ -41,12 +41,13 @@ zL0Map = 2000;
 
 %% Load results from opiCalc matfile with best-fit solution
 %... Load results from opiCalc matfile
-matPathResults = fnPersistentPath;
-[matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
-if matFile_Results==0, error('opiCalc matfile not found'), end
-%... Remove terminal slash, if present
-if matPathResults(end)=='/' || matPathResults(end)=='\'
-    matPathResults = matPathResults(1:end-1);
+if nargin < 1
+    matPathResults = fnPersistentPath;
+    [matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
+    if matFile_Results==0, error('opiCalc matfile not found'), end
+else
+    [matPathResults, matName, matExt] = fileparts(matFile_Results);
+    matFile_Results = [matName, matExt];
 end
 fnPersistentPath(matPathResults);
 
@@ -91,6 +92,10 @@ load([matPathResults, '/', matFile_Results], ...
     'rhoS0', 'hS', 'rho0', 'hRho', ...
     'd18O0', 'dD18O0_dLat', 'tauF', 'pGrid', 'fMGrid', 'rHGrid', ...
     'd2HGrid', 'd18OGrid');
+if ~isfolder(runPath), runPath = matPathResults; end
+if ~isfile(fullfile(dataPath, topoFile)) && isfile(fullfile(matPathResults, topoFile))
+    dataPath = matPathResults;
+end
 
 %... Read topographic data
 [lon, lat, hGrid] = gridRead([dataPath, '/', topoFile]);
@@ -234,7 +239,7 @@ end
 fprintf('\n---------------------- Solution ---------------------\n')
 fprintf('Wind speed: %.1f m/s\n', U)
 fprintf('Azimuth: %.1f degrees\n', azimuth)
-fprintf('Sea-level surface-air temperature: %.1f K (%.1f °C)\n', T0, T0 - TC2K)
+fprintf('Sea-level surface-air temperature: %.1f K (%.1f C)\n', T0, T0 - TC2K)
 fprintf('Mountain-height number: %.3f (dimensionless)\n', M)
 fprintf('Horizontal eddy diffusivity: %.0f m^2/s\n', kappa)
 fprintf('Average residence time for cloud water: %.0f s\n', tauC)
@@ -884,13 +889,12 @@ diary off
         axis(mapLimits);
         axis manual
         hA = gca;
-        hA.ZTick = [0 hA.ZLim(2)];
-        hA.ZTickLabels = [0 round(hA.ZLim(2),1)];
         hA.Box = 'on';
         hA.BoxStyle = 'full';        
         hA.FontSize = 16;
         hA.LineWidth = 1;
-        hA.ZLim(1) = min(hGrid(:));
+        % Skip Z-axis customization to avoid limit errors
+        % (Z-axis limits are automatically set by surf)
         %... Write labels
         str = sprintf('Fig. 7. Streamlines starting at %.0f m elevation', zL0Map);
         hT = title(str, 'FontSize', 16);
@@ -995,7 +999,7 @@ diary off
         hArrowEnd = hArrowStart;  
         hTA = annotation('textarrow',[sArrowStart, sArrowEnd], ...
             [hArrowStart, hArrowEnd], 'LineWidth', 1);
-        hTA.String  = sprintf('%.0f° ', azimuth);
+        hTA.String  = sprintf('%.0f deg ', azimuth);
         hTA.FontSize = 12;
 
         % Adjust position relative to position and size of middle plot
@@ -1161,7 +1165,7 @@ diary off
         h.LineWidth = 1;
         %... Create colorbar
         hCB = colorbar;
-        hCB.Label.String = 'Surface-Air Temperture (°C)';
+        hCB.Label.String = 'Surface-Air Temperature (C)';
         hCB.Label.FontSize = 18;
         hCB.Label.LineWidth = 1;
         %... Write labels

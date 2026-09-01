@@ -1,4 +1,11 @@
-# OPI - MATLAB Version
+# OPI - MATLAB Simulation and Data Assimilation
+
+This directory contains the OPI forward model, fitting and mapping programs,
+plus proxy data-assimilation operators and tests.
+
+For assimilation, call `run_assimilation(experimentRoot)` after generating
+calc-only OPI results. The experiment must contain
+`design/case_manifest.csv` and `calc_only/<case_id>/` result files.
 
 [![MATLAB](https://img.shields.io/badge/MATLAB-R2020b+-blue.svg)]()
 

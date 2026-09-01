@@ -1,4 +1,4 @@
-function opiPlots_TwoWinds
+function opiPlots_TwoWinds(matFile_Results)
 % opiPlots_TwoWinds takes as input a run file and an associated mat file
 % with a "two-winds" solution, and creates plot figures of the results.
 %
@@ -41,12 +41,13 @@ red = [204 37 41]./255;
 
 %% Load results from opiCalc matfile with best-fit solution
 %... Load results from opiCalc matfile
-matPathResults = fnPersistentPath;
-[matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
-if matFile_Results==0, error('opiCalc matfile not found'), end
-%... Remove terminal slash, if present
-if matPathResults(end)=='/' || matPathResults(end)=='\'
-    matPathResults = matPathResults(1:end-1);
+if nargin < 1
+    matPathResults = fnPersistentPath;
+    [matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
+    if matFile_Results==0, error('opiCalc matfile not found'), end
+else
+    [matPathResults, matName, matExt] = fileparts(matFile_Results);
+    matFile_Results = [matName, matExt];
 end
 fnPersistentPath(matPathResults);
 
@@ -99,6 +100,10 @@ load([matPathResults, '/', matFile_Results], ...
     'pSumPred_2', 'd2HPred_2', 'd18OPred_2', ...
     'liftMaxPred_2', 'elevationPred_2', ...
     'pSumPred', 'd2HPred', 'd18OPred');
+if ~isfolder(runPath), runPath = matPathResults; end
+if ~isfile(fullfile(dataPath, topoFile)) && isfile(fullfile(matPathResults, topoFile))
+    dataPath = matPathResults;
+end
 
 %... Test for samples
 if isempty([sampleLon, sampleLat])
@@ -160,6 +165,20 @@ iWet_1 = (pSumPred_1>0);
 iWet_2 = (pSumPred_2>0);
 iWet = (pSumPred>0);
 nSamplesWet = sum(iWet);
+
+%... Residual quantity for Fig03. Standardized residuals are unavailable
+% when degrees of freedom are nonpositive; use isotope residual magnitude.
+if any(isfinite(stdResiduals))
+    residualForPlot = stdResiduals;
+    residualLabel = 'Standardized Residuals';
+    residualTitle = 'Fig. 3. Standardized residuals for best-fit solution';
+else
+    residualForPlot = sqrt((sampleD2H - d2HPred).^2 + ...
+        (sampleD18O - d18OPred).^2)*1e3;
+    residualLabel = ['Isotope residual magnitude (', char(8240), ')'];
+    residualTitle = {'Fig. 3. Residual magnitude', ...
+        'Standardized residuals unavailable'};
+end
 
 %... Calculate statistics for predicted water isotopes
 [bMWLPred, sdPredMin, sdPredMax] = ...
@@ -486,10 +505,11 @@ Fig05 % Plot predicted isotopes versus elevation
         % Cholesky decomposition provides the square root of cov matrix
         % See "Drawing Confidence Ellipses and Ellipsoids", jellymatter.wordpress.com
         rHat = [cosd(0:0.5:360); sind(0:0.5:360)]';
-        ellipse = rHat*chol(cov) + [d2H0_1, d18O0_1];
+        covRoot = covSqrt(cov);
+        ellipse = rHat*covRoot + [d2H0_1, d18O0_1];
         plot(ellipse(:,2)*1e3, ellipse(:,1)*1e3, '-', ...
             'LineWidth', 3, 'Color', blue)
-        ellipse = rHat*chol(cov) + [d2H0_2, d18O0_2];
+        ellipse = rHat*covRoot + [d2H0_2, d18O0_2];
         plot(ellipse(:,2)*1e3, ellipse(:,1)*1e3, '-', ...
             'LineWidth', 3, 'Color', red)
         axis square tight
@@ -523,32 +543,39 @@ Fig05 % Plot predicted isotopes versus elevation
         subplot(2,1,1)
         hold on
         plot(sampleX(iWet&isSampleSide01)*1e-3, ...
-            stdResiduals(iWet&isSampleSide01), 'o', 'Color', blue);
+            residualForPlot(iWet&isSampleSide01), 'o', ...
+            'MarkerSize', 8, 'LineWidth', 1.5, ...
+            'MarkerFaceColor', blue, 'Color', blue);
         plot(sampleX(iWet&~isSampleSide01)*1e-3, ...
-            stdResiduals(iWet&~isSampleSide01), 'o', 'Color', red);
+            residualForPlot(iWet&~isSampleSide01), 'o', ...
+            'MarkerSize', 8, 'LineWidth', 1.5, ...
+            'MarkerFaceColor', red, 'Color', red);
         grid on
         grid minor
         %... Write labels for first plot
-        hT = title('Fig. 3. Standardized residuals for best-fit solution', ...
-            'FontSize', 16);
+        hT = title(residualTitle, 'FontSize', 14);
         hT.Units = 'normalized'; 
         hT.Position(2) = hT.Position(2) + 0.02;                
         xlabel('Easting (km)', 'FontSize', 16);
-        ylabel('Standardized Residuals', 'FontSize', 16)
+        ylabel(residualLabel, 'FontSize', 16)
         set(gca, 'FontSize', 16, 'LineWidth', 1);
 
         %... Plot standardized residuals as a function of y direction
         subplot(2,1,2)
         hold on
         plot(sampleY(iWet&isSampleSide01)*1e-3, ...
-            stdResiduals(iWet&isSampleSide01), 'o', 'Color', blue);
+            residualForPlot(iWet&isSampleSide01), 'o', ...
+            'MarkerSize', 8, 'LineWidth', 1.5, ...
+            'MarkerFaceColor', blue, 'Color', blue);
         plot(sampleY(iWet&~isSampleSide01)*1e-3, ...
-            stdResiduals(iWet&~isSampleSide01), 'o', 'Color', red);
+            residualForPlot(iWet&~isSampleSide01), 'o', ...
+            'MarkerSize', 8, 'LineWidth', 1.5, ...
+            'MarkerFaceColor', red, 'Color', red);
         grid on
         grid minor
         %... Write labels for second plot
         xlabel('Northing (km)', 'FontSize', 16);
-        ylabel('Standardized Residuals', 'FontSize', 16)
+        ylabel(residualLabel, 'FontSize', 16)
         set(gca, 'FontSize', 16, 'LineWidth', 1);
         %... Save figure in pdf format
         printFigure(matPathResults)
@@ -563,9 +590,11 @@ Fig05 % Plot predicted isotopes versus elevation
         subplot(2,1,1)
         hold on
         hP1 = plot(liftMaxPred_1(iWet_1), d2HPred_1(iWet_1)*1e3, ...
-            'o', 'Color', blue);
+            'o', 'Color', blue, 'MarkerFaceColor', blue, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         hP2 = plot(liftMaxPred_2(iWet_2), d2HPred_2(iWet_2)*1e3, ...
-            'o', 'Color', red);
+            'o', 'Color', red, 'MarkerFaceColor', red, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         xlim([0, inf])
         axis square
         %... Plot predicted lifting lines for each moisture source
@@ -599,9 +628,11 @@ Fig05 % Plot predicted isotopes versus elevation
         subplot(2,1,2)
         hold on
         hP1 = plot(liftMaxPred_1(iWet_1), d18OPred_1(iWet_1)*1e3, ...
-            'o', 'Color', blue);
+            'o', 'Color', blue, 'MarkerFaceColor', blue, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         hP2 = plot(liftMaxPred_2(iWet_2), d18OPred_2(iWet_2)*1e3, ...
-            'o', 'Color', red);
+            'o', 'Color', red, 'MarkerFaceColor', red, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         xlim([0, inf])
         axis square
         %... Plot predicted lifting lines for each moisture source
@@ -637,9 +668,11 @@ Fig05 % Plot predicted isotopes versus elevation
         subplot(2,1,1)
         hold on
         hP1 = plot(elevationPred_1(iWet_1), d2HPred_1(iWet_1)*1e3, ...
-            'o', 'Color', blue);
+            'o', 'Color', blue, 'MarkerFaceColor', blue, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         hP2 = plot(elevationPred_2(iWet_2), d2HPred_2(iWet_2)*1e3, ...
-            'o', 'Color', red);
+            'o', 'Color', red, 'MarkerFaceColor', red, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         xlim([0, inf])
         axis square
         %... Plot predicted lifting lines for each moisture source
@@ -673,9 +706,11 @@ Fig05 % Plot predicted isotopes versus elevation
         subplot(2,1,2)
         hold on
         hP1 = plot(elevationPred_1(iWet_1), d18OPred_1(iWet_1)*1e3, ...
-            'o', 'Color', blue);
+            'o', 'Color', blue, 'MarkerFaceColor', blue, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         hP2 = plot(elevationPred_2(iWet_2), d18OPred_2(iWet_2)*1e3, ...
-            'o', 'Color', red);
+            'o', 'Color', red, 'MarkerFaceColor', red, ...
+            'MarkerSize', 8, 'LineWidth', 1.5);
         xlim([0, inf])
         axis square
         %... Plot predicted lines for each moisture source
@@ -700,5 +735,16 @@ Fig05 % Plot predicted isotopes versus elevation
         hA.LineWidth = 1;
         %... Save figure in pdf format
         printFigure(matPathResults)
+    end
+
+    function R = covSqrt(C)
+        C = (C + C')/2;
+        [R, p] = chol(C);
+        if p==0
+            return
+        end
+        [V, D] = eig(C);
+        d = max(diag(D), 0);
+        R = sqrt(diag(d))*V';
     end
 end

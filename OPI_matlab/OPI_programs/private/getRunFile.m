@@ -65,16 +65,29 @@ for i =1:2
     end
     dataPath(i) = string(str);
 end
+dataPathCandidates = strings(0,1);
 for i = 1:2
-    if ~strcmp(dataPath(i), 'no') && isfolder(dataPath(i))
-        dataPath = char(dataPath(i));
-        break
-    else
-        if i==2
-            error('None of the paths for the data directories in the run file exist.')
-        end
+    if ~strcmp(dataPath(i), 'no')
+        dataPathCandidates(end+1,1) = dataPath(i);
     end
 end
+dataPathCandidates(end+1,1) = string(runPath);
+privatePath = fileparts(mfilename('fullpath'));
+programPath = fileparts(privatePath);
+opiRootPath = fileparts(programPath);
+dataPathCandidates(end+1,1) = string(fullfile(opiRootPath, 'data'));
+dataPathCandidates = unique(dataPathCandidates, 'stable');
+dataPathFound = "";
+for i = 1:length(dataPathCandidates)
+    if isfolder(dataPathCandidates(i))
+        dataPathFound = dataPathCandidates(i);
+        break
+    end
+end
+if strlength(dataPathFound)==0
+    error('None of the paths for the data directories in the run file exist.')
+end
+dataPath = char(dataPathFound);
 
 %... Read filename for digital topography. The file should be placed
 % in the directory set above for the dataPath variable.
@@ -84,7 +97,17 @@ while true
 end
 topoFile = str;
 if ~isfile([dataPath, '/', topoFile])
-    error('File for digital topography does not exist.')
+    dataPathFound = "";
+    for i = 1:length(dataPathCandidates)
+        if isfile(fullfile(dataPathCandidates(i), topoFile))
+            dataPathFound = dataPathCandidates(i);
+            break
+        end
+    end
+    if strlength(dataPathFound)==0
+        error('File for digital topography does not exist.')
+    end
+    dataPath = char(dataPathFound);
 end
 
 %... Size of cosine window, as fraction of grid size (0<= rTukey <=1)

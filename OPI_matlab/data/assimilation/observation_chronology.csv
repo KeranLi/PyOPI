@@ -1,0 +1,7 @@
+source,age_mean_Ma,age_min_Ma,age_max_Ma,age_basis,chronology_status
+Rowley_and_Currie_2006_Nature,NaN,23,33.9,user_reported_interval_only_23_to_33p9_Ma,known
+Ingalls_et_al_2020_AJS,NaN,26,28,user_reported_interval_only_26_to_28_Ma,known
+Li_et_al_2024_EPSL,24,22,26,user_reported_24_plus_or_minus_2_Ma,known
+DeCelles_et_al_2007_EPSL,NaN,24.8,26.1,user_reported_interval_only_24p8_to_26p1_Ma,known
+Xu_et_al_2018_GR,NaN,22.5,25.9,user_reported_interval_only_22p5_to_25p9_Ma,known
+Xiong_et_al_2022_SA,NaN,29,37,user_reported_interval_only_29_to_37_Ma,known

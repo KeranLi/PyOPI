@@ -1,8 +1,12 @@
-function opiCalc_OneWind
+function opiCalc_OneWind(runFile)
 % opiCalc_OneWind Calculates the full range of results for an OPI 
 % solution, as represented by a run file with a "one-wind" solution. 
 % The variables are saved in a mat file, which can then be used for 
 % producing plots and maps, and for other analysis.
+%
+% Usage:
+%   opiCalc_OneWind          - Open GUI to select run file
+%   opiCalc_OneWind(runFile) - Use specified run file
 %
 % v. 3.6 July, 2021
 %  1) Set getInput so that all isotope samples are input from data file,
@@ -20,6 +24,28 @@ function opiCalc_OneWind
 %  epsilon = stdev(F_searchSet).
 
 % Mark Brandon, Yale University, 2016-2022.
+
+if nargin < 1
+    outputText = evalc('opiCalc_OneWind_impl();');
+    logFilename = '';
+else
+    outputText = evalc('opiCalc_OneWind_impl(runFile);');
+    logFilename = fullfile(fileparts(runFile), [mfilename, '_Log.txt']);
+end
+fprintf('%s', outputText);
+if ~isempty(logFilename)
+    fid = fopen(logFilename, 'w', 'native', 'UTF-8');
+    if fid == -1
+        warning('Could not write log file: %s', logFilename);
+    else
+        cleaner = onCleanup(@() fclose(fid));
+        fprintf(fid, '%s', outputText);
+        delete(cleaner);
+    end
+end
+end
+
+function opiCalc_OneWind_impl(runFile)
 
 %% Initialize system
 close all
@@ -52,11 +78,19 @@ sdResRatio = 28.3;
 %     mapLimits, sectionLon0, sectionLat0, mu, epsilon0, ...
 %     parameterLabels, exponents, lB, uB, isPenalty, beta] ...
 %     = getRunFile(runFile)
-[runPath, runFile, runTitle, ~, dataPath, ...
-    topoFile, rTukey, sampleFile, contDivideFile, ~, ...
-    mapLimits, sectionLon0, sectionLat0, ~, ~, ...
-    ~, ~, lB, uB, beta] ...
-    = getRunFile;
+if nargin < 1
+    [runPath, runFile, runTitle, ~, dataPath, ...
+        topoFile, rTukey, sampleFile, contDivideFile, ~, ...
+        mapLimits, sectionLon0, sectionLat0, ~, ~, ...
+        ~, ~, lB, uB, beta] ...
+        = getRunFile;
+else
+    [runPath, runFile, runTitle, ~, dataPath, ...
+        topoFile, rTukey, sampleFile, contDivideFile, ~, ...
+        mapLimits, sectionLon0, sectionLat0, ~, ~, ...
+        ~, ~, lB, uB, beta] ...
+        = getRunFile(runFile);
+end
 if isempty(beta)
     error('opiCalc requires that the run file include an OPI solution at the end of the run file.')
 end

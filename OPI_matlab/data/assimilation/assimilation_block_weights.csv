@@ -1,0 +1,4 @@
+external_weight,status,description
+0.25,sensitivity,Strong preference for the local measured-data block
+0.50,primary,Local measured-data block weight is 1 and external literature block weight is 0.5
+1.00,sensitivity,Equal power for local and external likelihood blocks

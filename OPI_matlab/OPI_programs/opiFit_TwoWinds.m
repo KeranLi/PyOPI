@@ -43,6 +43,8 @@ hR = 540;
 % The estimate here is based on monthly measurements of
 % precipitation isotopes at the GNIP station at Coyhaique, Chile.
 sdResRatio = 28.3;
+%... Convert from Celsius to kelvin
+TC2K = 273.15;
 
 %% Get run file information
 % [runPath, runFile, runTitle, isParallel, dataPath, ...

@@ -2,6 +2,21 @@ function [s, t, Sxy, Txy, pGrid, hWind, fMWind, rHWind, fPWind, ...
     z223Wind, z258Wind, tauF] = precipitationGrid ...
     (x, y,  hGrid, U, azimuth, NM, fC, kappa, tauC, hRho, zBar, ...
     T, gammaEnv, gammaSat, gammaRatio, rhoS0, hS, fP0)
+% DEBUG: Check input values
+if hS <= 0 || isnan(hS) || isinf(hS)
+    fid = fopen('debug_precipitationGrid.txt', 'a');
+    fprintf(fid, 'ERROR: invalid hS = %g\n', hS);
+    fprintf(fid, '  U=%g, azimuth=%g, NM=%g\n', U, azimuth, NM);
+    fprintf(fid, '  kappa=%g, tauC=%g, hRho=%g\n', kappa, tauC, hRho);
+    fclose(fid);
+    error('precipitationGrid: invalid hS = %g', hS);
+end
+if U <= 0 || isnan(U) || isinf(U)
+    error('precipitationGrid: invalid U = %g', U);
+end
+if tauC <= 0 || isnan(tauC) || isinf(tauC)
+    error('precipitationGrid: invalid tauC = %g', tauC);
+end
 %... precipitationGrid calculates grids for precipitation rate 
 % (kg m^-2 s^-1) and moisture ratio (dimensionless), using a modified 
 % version of the LTOP algorithm of Smith and Barstad (2004). 
@@ -52,11 +67,29 @@ z258Wind = isotherm(258, zBar, T, gammaEnv, gammaSat, hRho, nS, nT, hHat, kZ);
 wFSnow = -1;
 wFRain = -6;
 % Mean fall time
-tauF = (z258Wind<=hWind).* -hS/wFSnow ...
+tauF_calc = (z258Wind<=hWind).* -hS/wFSnow ...
     + (z258Wind>hWind).* ...
     -((z258Wind - hWind)/wFRain + hS*exp(-(z258Wind - hWind)./hS)/wFSnow);
-tauF = mean(tauF, 'all');
-if isnan(tauF), stop, end
+tauF = mean(tauF_calc, 'all');
+if isnan(tauF) || isinf(tauF)
+    % Write debug info to file for parallel debugging
+    fid = fopen('debug_tauF_error.txt', 'a');
+    fprintf(fid, '=== tauF Error Debug ===\n');
+    fprintf(fid, 'hS = %g (wFSnow=%g, wFRain=%g)\n', hS, wFSnow, wFRain);
+    fprintf(fid, 'z258Wind: min=%g, max=%g, anyNaN=%d, anyInf=%d\n', ...
+        min(z258Wind, [], 'all'), max(z258Wind, [], 'all'), ...
+        any(isnan(z258Wind), 'all'), any(isinf(z258Wind), 'all'));
+    fprintf(fid, 'hWind: min=%g, max=%g, anyNaN=%d, anyInf=%d\n', ...
+        min(hWind, [], 'all'), max(hWind, [], 'all'), ...
+        any(isnan(hWind), 'all'), any(isinf(hWind), 'all'));
+    fprintf(fid, 'tauF_calc: min=%g, max=%g, anyNaN=%d, anyInfPos=%d, anyInfNeg=%d\n', ...
+        min(tauF_calc, [], 'all'), max(tauF_calc, [], 'all'), ...
+        any(isnan(tauF_calc), 'all'), any(isinf(tauF_calc)&tauF_calc>0, 'all'), ...
+        any(isinf(tauF_calc)&tauF_calc<0, 'all'));
+    fprintf(fid, 'Base state: zBar(1)=%g, T(1)=%g\n', zBar(1), T(1));
+    fclose(fid);
+    error('tauF is NaN or Inf in precipitationGrid (see debug_tauF_error.txt)')
+end
 clear z258Wind
 
 %... Calculate grid z223Wind, which is elevation relative to sea level of the 

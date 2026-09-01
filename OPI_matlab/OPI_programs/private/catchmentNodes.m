@@ -16,7 +16,10 @@ function [ijCatch, ptrCatch] = ...
 nSamples = length(sampleX);
 ijCatch = zeros(0, 1);
 ptrCatch = zeros(nSamples, 1);
-ptrCatch(1) = 1;
+% 初始化第一个指针，注意matlab索引从1开始
+if nSamples > 0
+    ptrCatch(1) = 1;
+end
 %... Initiate indices for D8 neighbors
 iD8 = [ 0 -1 -1 -1  0  1  1  1]';
 jD8 = [ 1  1  0 -1 -1 -1  0  1]';
@@ -27,14 +30,20 @@ hSGrid = imfill(hSGrid, 'holes');
 %... Iterate through samples
 for k = 1:nSamples
     % Initate vector for linear indices for sample catchment nodes
-    ijCatchSample(1) = sub2ind([m,n], ...
-        round(interp1(y, 1:m, sampleY(k), 'linear', 'extrap')), ...
-        round(interp1(x, 1:n, sampleX(k), 'linear', 'extrap')));
+    % Calculate row and column indices with bounds checking
+    rowIdx = round(interp1(y, 1:m, sampleY(k), 'linear', 'extrap'));
+    colIdx = round(interp1(x, 1:n, sampleX(k), 'linear', 'extrap'));
+    % Ensure indices are within valid range [1, m] and [1, n]
+    rowIdx = max(1, min(m, rowIdx));
+    colIdx = max(1, min(n, colIdx));
+    % Calculate linear index
+    ijCatchSample(1) = sub2ind([m,n], rowIdx, colIdx);
+    
     if sampleLC(k)=='L'
         % Local water sample (sampleLC == L), no catchment needed
         % Append one node for sample to full list of catchment nodes
+        ijCatch = [ijCatch; ijCatchSample(1)];
         if k~=nSamples, ptrCatch(k+1) = ptrCatch(k) + 1; end
-        ijCatch(ptrCatch(k),1) = ijCatchSample(1);        
         continue
     end
     % Calculate upslope nodes for catchment water sample (sampleLC == C)
@@ -80,6 +89,6 @@ for k = 1:nSamples
     end
     %... Append results to full list of catchment nodes
     if k~=nSamples, ptrCatch(k+1) = ptrCatch(k) + nC; end
-    ijCatch(ptrCatch(k) + (0:nC-1),1) = ijCatchSample;
+    ijCatch = [ijCatch; ijCatchSample];
 end
 end

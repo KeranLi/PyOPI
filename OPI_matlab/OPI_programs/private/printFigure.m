@@ -19,6 +19,7 @@ s = dbstack;
 %... Initialize figure properties
 hF = gcf;
 set(hF, 'InvertHardcopy', 'off', 'color', 'w');
+forceLightExportStyle(hF);
 %... Set 
 orient(hF, 'portrait')
 %... Construct filename
@@ -26,4 +27,29 @@ figFilename = sprintf('%s_Fig%02d', [filePath, s(end).name], hF.Number);
 %... Invoke print command
 print(hF, '-dpdf', '-bestfit', figFilename);
 
+end
+
+function forceLightExportStyle(hF)
+% Keep exported figures readable when MATLAB is running with a dark theme.
+set(findall(hF, 'Type', 'axes'), ...
+    'XColor', 'k', 'YColor', 'k', 'ZColor', 'k');
+set(findall(hF, 'Type', 'text'), 'Color', 'k');
+
+hColorbar = findall(hF, 'Type', 'colorbar');
+if ~isempty(hColorbar)
+    set(hColorbar, 'Color', 'k');
+end
+
+hLegend = findall(hF, 'Type', 'legend');
+if ~isempty(hLegend)
+    set(hLegend, 'TextColor', 'k', 'Color', 'w', 'EdgeColor', 'k');
+end
+
+% Annotation objects do not all inherit defaultTextColor consistently.
+hObjects = findall(hF);
+for i = 1:numel(hObjects)
+    if isprop(hObjects(i), 'TextColor')
+        set(hObjects(i), 'TextColor', 'k');
+    end
+end
 end

@@ -1,4 +1,4 @@
-function opiPlots_OneWind
+function opiPlots_OneWind(matFile_Results)
 % opiPlots_OneWind takes as input a run file and an associated mat file
 % with a "one-wind" solution, and creates plot figures of the results.
 %
@@ -41,12 +41,13 @@ red = [204 37 41]./255;
 
 %% Load results from opiCalc matfile with best-fit solution
 %... Load results from opiCalc matfile
-matPathResults = fnPersistentPath;
-[matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
-if matFile_Results==0, error('opiCalc matfile not found'), end
-%... Remove terminal slash, if present
-if matPathResults(end)=='/' || matPathResults(end)=='\'
-    matPathResults = matPathResults(1:end-1);
+if nargin < 1
+    matPathResults = fnPersistentPath;
+    [matFile_Results, matPathResults] = uigetfile([matPathResults,'/opiCalc*.mat']);
+    if matFile_Results==0, error('opiCalc matfile not found'), end
+else
+    [matPathResults, matName, matExt] = fileparts(matFile_Results);
+    matFile_Results = [matName, matExt];
 end
 fnPersistentPath(matPathResults);
 
@@ -92,6 +93,10 @@ load([matPathResults, '/', matFile_Results], ...
     'iWet', 'd2HPred', 'd18OPred', ...
     'd2HPredAlt', 'd18OPredAlt', ...    
     'liftMaxPred', 'elevationPred');
+if ~isfolder(runPath), runPath = matPathResults; end
+if ~isfile(fullfile(dataPath, topoFile)) && isfile(fullfile(matPathResults, topoFile))
+    dataPath = matPathResults;
+end
 
 %... Test for samples
 if isempty([sampleLon, sampleLat])

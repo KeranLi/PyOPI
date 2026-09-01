@@ -138,6 +138,10 @@ weights = rhoS.^2/sum(rhoS.^2);
 b = weights.*A\(weights.*log(rhoS));
 rhoS0 = exp(b(1));
 hS = -1/b(2);
+%... Check hS for valid range
+if hS <= 0 || isnan(hS) || isinf(hS) || hS > 2e4
+    error('baseState: invalid hS value (%g), check NM and T0 inputs', hS);
+end
 
 %... Exponential fit to estimate rho0 and hRho for total density
 % Total density is based on eq. 3.15 in Wallace and Hobbs, 2006.

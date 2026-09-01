@@ -1,0 +1,7 @@
+source,temperature_operator,age_min_Ma,age_max_Ma,region,status
+Rowley_and_Currie_2006_Nature,lake_warmest_terrazas2025,NaN,NaN,central_Tibet,enabled
+Ingalls_et_al_2020_AJS,lake_warmest_terrazas2025,NaN,NaN,central_Tibet,enabled
+Li_et_al_2024_EPSL,lake_warmest_terrazas2025,NaN,NaN,central_Tibet,enabled
+DeCelles_et_al_2007_EPSL,xiong2022_chattian_paleosol,29,37,central_Tibet,enabled_with_temporal_extrapolation_uncertainty
+Xu_et_al_2018_GR,lake_warmest_terrazas2025,NaN,NaN,southern_Tibet,enabled
+Xiong_et_al_2022_SA,xiong2022_chattian_paleosol,29,37,central_Tibet,enabled

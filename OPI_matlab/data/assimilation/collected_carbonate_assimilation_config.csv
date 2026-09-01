@@ -1,0 +1,32 @@
+key,value,unit,status,description
+spatial_radius_km,50,km,fixed,Precipitation-weighted support radius around each proxy site
+model_time_slice_Ma,30,Ma,fixed,Nominal age represented by the current OPI topography and climate ensemble
+model_time_halfwidth_Myr,2,Myr,diagnostic,Nominal display window only; observations are retained and age distance inflates uncertainty continuously
+unknown_age_action,include_provisional,text,provisional,Records without entered chronology remain active but are explicitly flagged
+age_quadrature_nodes,17,count,fixed,Midpoint quadrature nodes for uniform marginalization across each study-level age interval
+westerhold_old_age_Ma,34,Ma,fixed,Older endpoint used for the Westerhold et al 2020 background-temperature trend
+westerhold_young_age_Ma,20,Ma,fixed,Younger endpoint used for the Westerhold et al 2020 background-temperature trend
+westerhold_temperature_change_C,4.5,deg_C,provisional,Global temperature decrease from 34 to 20 Ma represented as a directional background trend
+westerhold_temperature_change_1sigma_C,0.5,deg_C,provisional,Uncertainty assigned to the 34-to-20 Ma temperature decrease
+westerhold_regional_response_mean,1.0,dimensionless,provisional,Mean central-Tibet temperature response relative to the global Westerhold trend
+westerhold_regional_response_1sigma,0.35,dimensionless,provisional,Regional-response uncertainty without changing the sign of the global trend
+xiong2022_reference_age_Ma,30,Ma,provisional,Reference age assigned to the Xiong temperature-operator intercepts within their 29-37 Ma calibration interval
+temporal_temperature_rate_C_per_Myr,0.15,deg_C_per_Myr,provisional,Residual temperature uncertainty per Myr after applying the directional Westerhold mean trend
+temporal_water_d18O_rate_permil_per_Myr,0.25,per_mil_per_Myr,provisional,Zero-mean precipitation d18O uncertainty per Myr evaluated at every age quadrature node
+temporal_operator_extrapolation_rate_C_per_Myr,0.5,deg_C_per_Myr,provisional,Residual paleosol-operator uncertainty per Myr outside its calibration interval after the directional temperature correction
+water_d18O_model_discrepancy_permil,1.0,per_mil,provisional,Uncertainty between modeled precipitation and carbonate-forming water without a mean evaporation correction
+carbonate_fractionation_discrepancy_permil,0.5,per_mil,provisional,Kim-O'Neil calibration mineralogy and proxy-system discrepancy on the VPDB scale
+temperature_model_discrepancy_C,2.0,deg_C,provisional,Additional Eocene and carbonate-season uncertainty beyond the applicable temperature-operator residual
+paleosol_temperature_model_discrepancy_C,3.0,deg_C,provisional,Regional transfer and soil-process uncertainty added to the Xiong 2022 Chattian formation-temperature branches
+paleosol_soil_water_discrepancy_permil,1.0,per_mil,provisional,Additional uncertainty when OPI precipitation d18O is used as paleosol-forming soil water without a mean evaporation correction
+xiong2022_early_summer_intercept_C,36.5,deg_C,fixed,Intercept fitted to the 2.5 km 24 C and 4.5 km 14 C Chattian end members in Xiong 2022 Table 1
+xiong2022_early_summer_lapse_C_per_km,-5.0,deg_C_per_km,fixed,Formation-temperature slope for the April-June or May-June branch
+xiong2022_september_intercept_C,37.0,deg_C,fixed,Intercept fitted to the 2.5 km 22 C and 4.5 km 10 C Chattian end members in Xiong 2022 Table 1
+xiong2022_september_lapse_C_per_km,-6.0,deg_C_per_km,fixed,Formation-temperature slope for the September branch
+xiong2022_early_summer_weight,0.5,fraction,provisional,Prior formation-season weight for the early-summer branch
+xiong2022_september_weight,0.5,fraction,provisional,Prior formation-season weight for the September branch
+case_prior_type,uniform_qiangtang_height_then_case,text,provisional,Equal prior mass per Qiangtang height then equal mass among cases at that height
+temperature_operator,explicit_site_assignment,text,fixed,Lacustrine proxies use Terrazas2025 warmest LSWT; paleosol use of the 29-37 Ma Xiong2022 operator outside calibration receives explicit temporal extrapolation uncertainty
+fractionation_operator,Kim_ONeil_1997_calcite_water,text,fixed,Equilibrium calcite-water oxygen isotope fractionation
+outside_domain_action,skip,text,fixed,Observations outside the model grid are reported but do not affect likelihood
+include_non_lacustrine,0,logical,fixed,Non-lacustrine proxies require a separate soil or groundwater temperature operator and are reported but skipped

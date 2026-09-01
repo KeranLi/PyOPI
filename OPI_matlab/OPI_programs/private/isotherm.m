@@ -1,5 +1,14 @@
 function zR = isotherm(TR, zBar, T, gammaEnv, gammaSat, hRho, ...
     nS, nT, hHat, kZ)
+% DEBUG: Check inputs
+if any(isnan(T)) || any(isnan(gammaEnv)) || any(isnan(gammaSat))
+    error('isotherm: NaN in input arrays - T:%d gammaEnv:%d gammaSat:%d', ...
+        any(isnan(T)), any(isnan(gammaEnv)), any(isnan(gammaSat)));
+end
+if any(isinf(T)) || any(isinf(gammaEnv)) || any(isinf(gammaSat))
+    error('isotherm: Inf in input arrays - T:%d gammaEnv:%d gammaSat:%d', ...
+        any(isinf(T)), any(isinf(gammaEnv)), any(isinf(gammaSat)));
+end
 %... Calculate height array for isothermal surface with temperature TR.
 % Input arguments:
 % TR = specified isotherm temperature (scalar, K)
