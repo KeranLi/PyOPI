@@ -1,7 +1,7 @@
 # OPI - Orographic Precipitation and Isotopes
 
-[![MATLAB](https://img.shields.io/badge/MATLAB-R2020b+-blue.svg)](matlab/)
-[![Python](https://img.shields.io/badge/Python-3.8+-green.svg)](python/)
+[![MATLAB](https://img.shields.io/badge/MATLAB-R2020b+-blue.svg)](OPI_matlab/)
+[![Python](https://img.shields.io/badge/Python-3.8+-green.svg)](OPI_python/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A comprehensive model for analyzing precipitation and water isotope fractionation associated with steady atmospheric flow over arbitrary three-dimensional topography.
@@ -12,8 +12,8 @@ This repository contains **two implementations** of the OPI model:
 
 | Version | Language | Status | Documentation |
 |---------|----------|--------|---------------|
-| **[MATLAB](matlab/)** | MATLAB R2020b+ | ✅ Original | [MATLAB Docs](matlab/README.md) |
-| **[Python](python/)** | Python 3.8+ | ✅ Ported | [Python Docs](python/README.md) |
+| **[MATLAB](OPI_matlab/)** | MATLAB R2020b+ | ✅ Original | [MATLAB Docs](OPI_matlab/README.md) |
+| **[Python](OPI_python/)** | Python 3.8+ | ✅ Ported | [Python Docs](OPI_python/README.md) |
 
 ## 🎯 Quick Start
 
@@ -21,11 +21,11 @@ This repository contains **two implementations** of the OPI model:
 
 ```bash
 # For MATLAB users
-cd matlab/
-# See matlab/README.md for instructions
+cd OPI_matlab/
+# See OPI_matlab/README.md for instructions
 
 # For Python users
-cd python/
+cd OPI_python/
 pip install -e ".[all]"
 # See python/README.md for instructions
 ```
@@ -58,14 +58,14 @@ OPI/
 │   ├── comparison/          # MATLAB vs Python comparison
 │   └── theory/              # Theoretical background
 │
-├── matlab/                   # MATLAB implementation
+├── OPI_matlab/              # MATLAB implementation
 │   ├── README.md            # MATLAB-specific docs
 │   ├── OPI_programs/        # Main programs
 │   ├── private/             # Core functions
 │   ├── data/                # Sample data
 │   └── runs/                # Run files & output
 │
-├── python/                   # Python implementation
+├── OPI_python/              # Python implementation
 │   ├── README.md            # Python-specific docs
 │   ├── opi/                 # Main package
 │   ├── tests/               # Test suite
@@ -91,6 +91,15 @@ OPI/
 | **I/O** | `.mat` files | NumPy, NetCDF, GeoTIFF, etc. |
 
 ## 📖 Documentation
+
+### MATLAB data assimilation
+
+The MATLAB implementation now includes proxy data-assimilation operators,
+chronology handling, posterior weighting, configurations, and tests. Start
+with [`OPI_matlab/README.md`](OPI_matlab/README.md) and call
+`run_assimilation(experimentRoot)` for a completed calc-only experiment.
+Parallel fitting on Apple Silicon uses MATLAB's Parallel Computing Toolbox;
+set the `.run` parallel flag to `1` or use `opiStartParallelPool`.
 
 ### Main Documentation
 - [Getting Started](docs/getting-started.md) - Start here!

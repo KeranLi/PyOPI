@@ -40,7 +40,8 @@ Original MATLAB implementation of the OPI (Orographic Precipitation and Isotopes
 
 ### Prerequisites
 - MATLAB R2020b or later
-- No additional toolboxes required
+- Parallel Computing Toolbox is optional for serial simulation and required
+  for parallel fitting.
 
 ### Running a Simulation
 
