@@ -1,3 +1,27 @@
 __pycache__/ 
 *.pyc 
 *.pyo 
+
+# MATLAB editor and operating-system artifacts
+.DS_Store
+*.asv
+*.m~
+
+# Reproducible OPI experiment outputs
+OPI_matlab/scenarios/
+OPI_matlab/experiments/
+OPI_matlab/results/
+OPI_matlab/output/
+OPI_matlab/runs/*.txt
+OPI_matlab/runs/*.log
+OPI_matlab/runs/*.mat
+
+# Generated OPI and assimilation products anywhere below MATLAB
+OPI_matlab/**/opiCalc_*_Results.mat
+OPI_matlab/**/opiFit_*_BestFit.mat
+OPI_matlab/**/*_Log.txt
+OPI_matlab/**/*.fig
+OPI_matlab/**/*.png
+
+# Keep source-controlled run definitions and small tabular inputs.
+!OPI_matlab/runs/*.run
