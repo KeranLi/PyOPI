@@ -182,7 +182,7 @@ If you use OPI in your research, please cite:
 ## 🙏 Acknowledgments
 
 - **MATLAB Original**: Mark Brandon, Yale University
-- **Python Port**: AI Assistant & Contributors
+- **Python Port**: Keran Li
 - **Theory**: Based on Smith & Barstad (2004), Durran & Klemp (1982)
 
 ---
