@@ -6,6 +6,12 @@
 
 A comprehensive model for analyzing precipitation and water isotope fractionation associated with steady atmospheric flow over arbitrary three-dimensional topography.
 
+## News
+
+- **2026/09/01 updates**: The MATLAB implementation now includes the proxy
+  data-assimilation framework and documented Apple Silicon CPU parallel fitting
+  with Parallel Computing Toolbox. See the full [update note](docs/updates/2026-09-01-matlab-framework.md).
+
 ## 📦 Two Versions Available
 
 This repository contains **two implementations** of the OPI model:
