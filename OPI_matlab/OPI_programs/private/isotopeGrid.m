@@ -43,12 +43,18 @@ warning('off', 'MATLAB:griddedInterpolant:MeshgridEval2DWarnId');
 %% Initialize variables
 %... Shear for bringing fall path to vertical, where the shear ratio
 % is the horizontal over vertical distances for fall of precipitation.
+% tauF是降水平均下落时间，乘以风速U表示沿着风向移动的距离
+% 除以水汽密度尺度高度表示水汽相对于纵向移动比值
 shear = U*tauF/hS;
+% shear：降水下落时的水平位移与垂直尺度之比，无量纲。
+% U 是水平风速，tauF 是降水平均下落时间，hS 是水汽密度尺度高度。
 %... Constants for fractionation due to evaporation
 % Diffusivity ratios from Merlivat, 1978, with the rare isotopologue
 % in the numerator
 DRatio2H = 0.9755;
+% DRatio2H：含氘水分子相对于普通水分子的扩散系数之比。
 DRatio18O = 0.9723;
+% DRatio18O：含 18O 水分子相对于普通水分子的扩散系数之比。
 % Exponent, n, for fractionation due to evaporation.
 % Recommended value: n = 1
 % This exponent has a potential range from about 0.5 to 1. 
@@ -58,31 +64,47 @@ DRatio18O = 0.9723;
 % Stewart, 1975 estimates n = 0.58 for evaporation of falling water drops. 
 % Criss, 1999, p. 175 recommends n = 1 for evaporation from soils.
 n = 1;
+% n：动力学蒸发分馏指数，用于调节分子扩散差异的影响强度。
 
 %% Set up wind-direction grid
 %... Parameters for wind grid for topographic data
-dS = s(2)-s(1);
-[~, nT] = size(hWind);
+dS = s(2)-s(1); % 沿风向的网格间距，单位 m，用于后续沿风向积分
+[~, nT] = size(hWind); % 横风向 t 上的网格点数量，即沿风向路径的条数
 
 % Horizontal shear needed to transform to vertical paths to land surface
 sSurfaceShearWind = s + shear*hWind;
+% 将地面位置变换到剪切坐标，以对应降水粒子倾斜的下落路径。
 
 %... Construct grid for temperature at land surface
+% TLSWind：风向网格中的地表温度，单位 K。
+% 当前模型使用海平面处的 gammaSat(1) 作为全高度范围的常数近似：
+% 地形越高，估算的地表温度越低。由于 gammaSat 通常随高度变化，
+% 对特别高的地形，这种近似可能高估地表温度（使结果偏暖）。
 TLSWind = T(1) - gammaSat(1)*hWind;
 
+% 更严格的替代方案：沿 baseState 的饱和绝热递减率垂直积分，
+% 再将累计降温插值到每个地形高度。以下代码目前只作为记录，
+% 保持注释状态以避免改变原模型结果。
+% deltaTSat = cumtrapz(zBar, gammaSat);
+% TLSWind = T(1) - interp1(zBar, deltaTSat, hWind, 'linear', 'extrap');
+
 % Horizontal shear of isothermal surface, to make fall paths vertical.
-sShearWind = s + shear*z223Wind;
-for j = 1:nT
+sShearWind = s + shear*z223Wind; % 这里是在计算在风向上移动的雨雪在风向上的移动距离
+for j = 1:nT % 这个循环是要处理每条风向上的路径
     % Use first crossing where surface is steeper than fall path
     iMonotonic = sShearWind(:,j) ...
         >cummax([sShearWind(1,j)-1; sShearWind(1:end-1,j)]);
-    z223Wind(:,j) = interp1(sShearWind(iMonotonic,j), ...
+    % iMonotonic的计算逻辑是基于循环迭代不断寻找风向坐标中不断递增的点作为风向传播方向
+    % 基于新的风向差值得到当前风向传播路径上223K的等温面
+z223Wind(:,j) = interp1(sShearWind(iMonotonic,j), ...
         z223Wind(iMonotonic,j), sSurfaceShearWind(:,j), ...
         'linear', z223Wind(1,j));
 end
+% 将 223 K 等温面校正到最终降水落点对应的倾斜下落路径。
 % Finalize by calculating height of isothermal surface above 
 % land surface along fall path. 
 zBar223Wind = z223Wind - hWind;
+% zBar223Wind：223 K 等温面距离当地地面的高度，单位 m。
 clear z223Wind
 
 % Horizontal shear of isothermal surface, to make fall paths vertical.
@@ -99,28 +121,46 @@ clear sShearWind
 % Finalize by calculating height of isothermal surface above 
 % land surface along fall path. 
 zBar258Wind = z258Wind - hWind;
+% zBar258Wind：258 K 等温面距离当地地面的高度，单位 m。
 clear z258Wind
 
 % Calculate zBarFSWind, the height of freezing surface above land surface.
 % Set to zero where freezing surface is below land surface. 
 zBarFSWind = zBar258Wind;
 zBarFSWind(zBarFSWind<0) = 0;
+% 这一部分是在将258K等温度面高度转换为距离地表的高度，小于0就截断为0
+% 由于z258Wind已经考虑了沿风向下落的移动距离
+% zBarFSWind：冻结参考面距离地面的有效高度；位于地面以下时按 0 处理。
 
 % Differentiate ln(fM) in wind direction
+% fMWind是风向网格中当前总水分柱质量相对于初始背景水汽柱质量的比例
+% gradient是对相邻两个网格s间的fMWind的变化率
+% 得到dLnFM_dSWind，表示总水分比例在对数坐标下沿风向变化的空间梯度
 [~, dLnFM_dSWind] = gradient(log(fMWind), dS);
 
 % Calculate hydrogen-isotope grid
 % Get specific equilibrium factors as required for averaging calculation.
+% 计算氢同位素平衡分馏系数在"地表至 258 K"和"258 K 至 223 K"两个垂直区间内的平均高度梯
 aLSWind = fractionationHydrogen(TLSWind);
 a258 = fractionationHydrogen(258);
 a223 = fractionationHydrogen(223);
+% aLSWind、a258、a223：地表、258 K 和 223 K 温度下的氢同位素平衡分馏系数。
 % Calculate fractionation factors by vertical averaging.
 % Subscripts A and B refer to above and below 258 K point.
+% bA、bB 分别是高空冰相区和低空暖区中，分馏系数随高度的平均变化率。
 bA = (a223 - a258)./(zBar223Wind - zBar258Wind);
 bA(isnan(bA)) = 0;
 bB = (a258 - aLSWind)./zBar258Wind;
 bB(isnan(bB)) = 0;
 % Fractionation factor for precipitation, equal to R_prec/R_vapor.
+% aLSWind表示当地地表温度对应的氢同位素平衡分馏系
+% a258表示表示258K时的氢同位素平衡分馏系数
+% bA表示在258K到223K的高空区域中，氢同位素平衡分馏系数平均每升高1m的变化量
+% bB表示从地表到258K等温面的区域中，氢同位素平衡分馏系数平均每升高1m的变化
+% zBarFSWind表示258K冻结参考面距离当地地面的有效高度
+% 如果258K等温面位于地表海拔之下，该值被设为0
+% hR是降水粒子在下降过程中发生同位素再平衡或"重置"的尺度高度
+% 可以直观理解为降水粒子从高空向下落时，它原来携带的高空同位素特征能够保存多久
 aPrecWind = ...
     ( (a258 + bA.*(hS + zBarFSWind - zBar258Wind)).*exp(-zBarFSWind./hR) ...
     + aLSWind.*(1 - exp(-zBarFSWind./hR)) ).*exp(-zBarFSWind./hS) ...
@@ -147,26 +187,32 @@ clear bA bB cA cB
 % is the only place where temperature affects isotope fractionation 
 % associated with evaporation.
 a1EvapWind = fractionationHydrogen(TLSWind);
+% a1EvapWind：按地表温度计算、相对湿度为 1 的平衡蒸发分馏系数。
 % Calculate fractionation factor for evaporation at rH = 0.
 a0EvapWind = a1EvapWind.*DRatio2H^-n;
+% a0EvapWind：结合扩散系数差异后的干燥条件蒸发分馏系数。
 % Calculate fractionation factor for evaporation process (R_evap/R_vapor).
 aEvapWind = a1EvapWind.*rHWind./(1 - a0EvapWind.*(1 - rHWind));
+% aEvapWind：当前相对湿度 rHWind 下，蒸发水汽相对于液态水的分馏系数。
 % Calculate exponent for integration of evaporative fractionation.
 uEvap_d2HWind = 1./(a0EvapWind.*(1-rHWind)) - 1;
+% uEvap_d2HWind：蒸发再循环积分中使用的氢同位素指数参数。
 uEvap_d2HWind(rHWind==1) = 0;
 % Combine to get fractionation factor for residual precipitation
 % relative to atmospheric water vapor (R_residual/R_vapor).
 aResidualVaporWind = fPWind.^uEvap_d2HWind.*aPrecWind ...
     + (1 - fPWind.^uEvap_d2HWind).*aEvapWind;
+% aResidualVaporWind：考虑部分降水蒸发返回后，剩余水汽与降水之间的有效分馏系数。
 clear a0Evap a1Evap
 
-% If opiFit, then remove unneeded arrays
+% 拟合模式只需要最终预测值，因此清除不再需要的蒸发中间数组以节省内存。
 if isFit==true, clear aEvap_d2HWind uEvap_d2HWind, end
 
 % Integrate fractionation along the wind direction (down the columns)
 % Result is the isotope ratio for the precipitation.
 R_PrecWind = aPrecWind./aPrecWind(1,:) ...
     .*exp(cumtrapz((aResidualVaporWind - 1).*dLnFM_dSWind).*dS);
+% R_PrecWind：风向网格中降水相对于上风边界的同位素比值。
 clear aPrec aResidual_Vapor
 
 % If opiCalc, then calculate d2HEvapGrid and uEvap_d2HGrid
@@ -178,10 +224,12 @@ if isFit==false
     F = griddedInterpolant({s, t}, d2HEvapWind, 'linear', 'none');
     clear d2HEvapWind
     evapD2HGrid = F(Sxy, Txy);
+    % evapD2HGrid：转换回地理坐标后的蒸发水汽氢同位素组成。
     % Convert uEvap_d2HWind back to geographic grid
     F = griddedInterpolant({s, t}, uEvap_d2HWind, 'linear', 'none');
     clear uEvap_d2HWind
     uEvapD2HGrid = F(Sxy, Txy);
+    % uEvapD2HGrid：转换回地理坐标后的蒸发分馏指数场。
     clear F
 end
 
@@ -202,6 +250,7 @@ clear R_PrecWind
     d2HGrid = (1 + d2H0 + dDH0dLat*(abs(lat) - abs(lat0))).*F(Sxy, Txy) - 1;
 
 %% Calculate oxygen-isotope grid
+% 氧同位素的计算流程与氢同位素相同，但使用 18O 的分馏关系和扩散系数比。
 % Get specific equilibrium factors as required for averaging calculation.
 aLSWind = fractionationOxygen(TLSWind);
 a258 = fractionationOxygen(258);
