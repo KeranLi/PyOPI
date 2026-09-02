@@ -59,9 +59,13 @@ if nargin==0, error('Input arguments are missing'); end
 %% Constants
 g = 9.81;           % standard gravity (m/s^2)
 cPD = 1005.7;       % heat capacity dry air, constant pressure & 0 C (J/kg-K)
+% cPD：干空气定压比热，即 1 kg 干空气升高 1 K 所需的热量。
 cPV = 1952;         % heat capacity water vapor, constant pressure & 0 C (J/kg-K)
+% cPV：水汽定压比热，即 1 kg 水汽升高 1 K 所需的热量。
 RD = 287.0;         % specific gas constant dry air (J/kg-K)
+% RD：干空气气体常数，用于由气压、温度和密度联系湿空气状态。
 L = 2.501e6;        % latent heat of vaporization (water -> vapor) (J/kg)
+% L：水的汽化潜热；凝结时释放相同大小的潜热。
 p0 = 101325;        % standard sea-level pressure (Pa)
 epsilon = 0.622;    % molecular mass of water relative to air (kg/kg)
 dZ = 100;           % elevation increment (m) (recommended: 100 m)
@@ -69,25 +73,37 @@ zMax = 12e3;        % maximum elevation (m)
 
 %% Compute base state
 n = round(zMax/dZ) + 1;
+% 生成高度的向量，这里加上1表示要把0m也算进去
 zBar = (0:n-1)'*dZ;
+% 生成从海平面到 12 km 的垂直高度坐标；转置后为 n×1 列向量。
 T = zeros(n,1);
 T(1) = T0;
+% 生成(n,1)的全0向量，记录温度
 p = zeros(n,1);
 p(1) = p0;
 rS = zeros(n,1);
+% rS：饱和混合比剖线，即每 1 kg 干空气中可含的饱和水汽质量。
 gammaEnv = zeros(n,1);
+% 环境温度递变率，表示大气背景环境中温度随高度增加下降的速度
 gammaSat = zeros(n,1);
+% gammaSat：饱和绝热递减率，表示饱和空气团被抬升时自身的降温速度。
 rho = zeros(n,1);
+% rho：总湿空气密度（干空气和水汽质量之和），单位 kg/m^3。
 
 %... Define nested function for numerically solving for gammaEnv
+% 函数的核心功能是计算猜测的环境温度递减率与目标大气稳定度之间的差距(diff)是多少
+% NM^2 是指定的目标饱和浮力频率平方。
+% NS2Est 是候选环境递减率产生的饱和浮力频率平方。
+% dRS_dZ 是饱和混合比随高度的变化率。
 function diff = fDiff(gammaEnvEst)
     % Vertical derivative of saturation mixing ratio (DK82, eq. 12)
     dRS_dZ = rS(i)*(1 + rS(i)/epsilon)/(RD*T(i)) ...
-        *(-epsilon.*L.*gammaEnvEst/T(i) ...
+        *(-epsilon.*L.*gammaEnvEst/T(i) ... % 环境按照gammaEnvEst变化，饱和水汽混合比的高度梯度是多少
         + g.*(1 + rS(i))./(1 + rS(i)./epsilon));
     %... Saturated buoyancy frequency using DK82, eq 5, with rT = rS
-    NS2Est = (g/T(i))*(gammaSat(i) - gammaEnvEst) ...
-        *(1 + L*rS(i)/(RD*T(i))) - g/(1 + rS(i)) *dRS_dZ;
+    % 使用当前猜测的gammaEnvEst时，计算得到的饱和浮力频率平方
+    NS2Est = (g/T(i))*(gammaSat(i) - gammaEnvEst) ... % 描述饱和水汽空气团温度与环境温度变化速率
+        *(1 + L*rS(i)/(RD*T(i))) - g/(1 + rS(i)) *dRS_dZ; % 饱和混合比例随高度变化造成的水汽浮力修正
     diff = NM^2 - NS2Est;    
 end
 %... End of nested function
@@ -104,6 +120,8 @@ for i = 1:n
     % Start with guess based on eq. 3 from Durran and Klemp, 1982
     gammaEnvGuess = gammaSat(i) - NM^2*T(i)/g;
     gammaEnv(i) = fzero(@fDiff, gammaEnvGuess);
+    % 在第 i 个高度层，找一个环境温度递减率，使 fDiff=0，
+    % 即使计算得到的饱和浮力频率平方等于目标值 NM^2。
     % Total density, eq. 3.15 in Wallace and Hobbs, 2006
     rho(i) = p(i)*(1 + rS(i))/(RD*T(i)*(1 + rS(i)/epsilon));    
     %... Forward difference for temperature, pressure, and 
